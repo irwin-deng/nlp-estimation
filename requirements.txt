@@ -1,0 +1,4 @@
+tensorflow-text
+tf-models-official
+tfds-nightly
+jupyter
