@@ -11,49 +11,49 @@ rouge_scorer = rouge_scorer_module.RougeScorer(['rougeL'], use_stemmer=True)
 
 from nltk.translate.bleu_score import sentence_bleu, SmoothingFunction
 
-def get_knn(sample: str, train: list[str],
+def get_knn(sample: str, unlabeled: list[str],
             similarity: Callable[[str, str], float], k: int) -> np.ndarray:
     """
-    Finds the (exact) k nearest neighbors in the train dataset for the given
+    Finds the (exact) k nearest neighbors in the unlabeled dataset for the given
     sample
     """
-    distances = [similarity(sample, train[i]) for i in range(len(train))]
+    distances = [similarity(sample, unlabeled[i]) for i in range(len(unlabeled))]
     indices = np.argpartition(distances, k)
     return indices[:k]
 
 
-def get_knn_matrix(train: list[str], test: list[str],
+def get_knn_matrix(unlabeled: list[str], labeled: list[str],
                    similarity: Callable[[str, str], float],
                    k: int) -> dict[int, np.ndarray]:
     """
-    Finds the (exact) k nearest neighbors in the train dataset for each sample
-    in the test dataset
+    Finds the (exact) k nearest neighbors in the unlabeled dataset for each sample
+    in the labeled dataset
     """
-    n_test = len(test)
+    n_labeled = len(labeled)
     knn_dict = {}
-    for indx in range(n_test):
-        knn_dict[indx] = get_knn(test[indx], train, similarity, k)
+    for indx in range(n_labeled):
+        knn_dict[indx] = get_knn(labeled[indx], unlabeled, similarity, k)
     return knn_dict
 
 
-def get_approx_knn_matrix(train: datasets.arrow_dataset.Dataset,
-                          test: datasets.arrow_dataset.Dataset,
+def get_approx_knn_matrix(unlabeled_ds: datasets.arrow_dataset.Dataset,
+                          labeled_ds: datasets.arrow_dataset.Dataset,
                           encoder: Callable[[dict[str, torch.Tensor]], ArrayLike],
                           k: int, seed: int = 0, verbose: bool = False
                          ) -> tuple[NDArray[np.int32], NDArray[np.number]]:
     """
-    Finds the approximate k nearest neighbors in the train dataset for each
-    sample in the test dataset using the PyNNDescent library:
+    Finds the approximate k nearest neighbors in the unlabeled dataset for each
+    sample in the labeled dataset using the PyNNDescent library:
     https://pynndescent.readthedocs.io/
 
-    :param train: a list of training samples
-    :param test: a list of test samples
+    :param unlabeled_ds: the unlabeled dataset
+    :param labeled_ds: the labeled dataset
     :param encoder: a function that converts a string into an embedding
     :returns:
         - array 'nearest_indices' in which the ith row contains the indices of
-        the k closest train samples to the ith test sample
+        the k closest unlabeled samples to the ith labeled sample
         - array 'distances' in which the entry at indices (i, j) contains the
-        distance between test sample i and train sample nearest_indices[i, j]
+        distance between labeled sample i and unlabeled sample nearest_indices[i, j]
     """
     def normalized_encoder(sample: dict[str, torch.Tensor]) -> NDArray[np.number]:
         """
@@ -61,19 +61,19 @@ def get_approx_knn_matrix(train: datasets.arrow_dataset.Dataset,
         """
         return np.array(encoder(sample)).flatten()
 
-    # Encode train and test data
+    # Encode unlabeled and labeled data
     if verbose:
         print("Encoding data with BERT encoder...")
-    train.map(lambda sample: {"encoding": normalized_encoder(sample)})
-    test.map(lambda sample: {"encoding": normalized_encoder(sample)})
+    unlabeled_ds.map(lambda sample: {"encoding": normalized_encoder(sample)})
+    labeled_ds.map(lambda sample: {"encoding": normalized_encoder(sample)})
 
-    print(train.select(range(5))["encoding"])
+    print(unlabeled_ds.select(range(5))["encoding"])
 
-    # Index training data
+    # Index unlabeled data
     if verbose:
-        print("Indexing train data...")
+        print("Indexing unlabeled data...")
     nn_graph = pynndescent.NNDescent(
-        train["encoding"],
+        unlabeled_ds["encoding"],
         metric = "euclidean",
         n_neighbors = 3 * k,
         random_state = seed,
@@ -83,7 +83,7 @@ def get_approx_knn_matrix(train: datasets.arrow_dataset.Dataset,
     # Get nearest neighbours
     if verbose:
         print("Finding nearest neighbors...")
-    nearest_indices, distances = nn_graph.query(test["encoding"], k)
+    nearest_indices, distances = nn_graph.query(labeled["encoding"], k)
 
     print(nearest_indices[:5])
 
