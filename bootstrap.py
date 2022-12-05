@@ -1,225 +1,114 @@
-"""
-Implementation of paired bootstrap test
-`(Efron & Tibshirani, 1994) <https://cds.cern.ch/record/526679/files/0412042312_TOC.pdf>`_.
-"""
-from sklearn.metrics import accuracy_score
-# STD
-from typing import Optional
-import scipy
-
-# EXT
-from joblib import Parallel, delayed
+from typing import Any, Generator
+import random
 import numpy as np
+from numpy.typing import NDArray
+import torch
+import datasets
+from datasets import load_dataset
+from similarity import get_approx_knn_matrix
+from transformers import BertModel, BertTokenizer
+bert_tokenizer = BertTokenizer.from_pretrained('bert-base-uncased')
+bert_model: BertModel = BertModel.from_pretrained('bert-base-uncased')
 
-# PKG
-from conversions import ArrayLike, score_pair_conversion
+device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+# device = torch.device("cpu")
 
+mnli_ds_name = "multi_nli"
+snli_ds_name = "snli"
 
-@score_pair_conversion
-def bootstrap_CI(
-    scores_a: ArrayLike,
-    scores_b: ArrayLike,
-    alpha: float = 0.95,
-    num_samples: int = 1000,
-    num_jobs: int = 1,
-    seed: Optional[int] = None,
-) -> (float, float):
+def bert_cls_vector(sample: dict[str, torch.Tensor]) -> NDArray[np.int32]:
     """
-    Implementation of paired bootstrap test. A p-value is being estimated by comparing the mean of scores
-    for two algorithms to the means of resampled populations, where `num_samples` determines the number of
-    times we resample.
-    The test is single-tailed, where we want to verify that the algorithm corresponding to `scores_a` is better than
-    the one `scores_b` originated from.
-    Parameters
-    ----------
-    scores_a: ArrayLike
-        Scores of algorithm A.
-    scores_b: ArrayLike
-        Scores of algorithm B.
-    alpha: float
-        significance level
-    num_samples: int
-        Number of bootstrap samples used for estimation.
-    num_jobs: int
-        Number of threads that bootstrap iterations are divided among.
-    seed: Optional[int]
-        Set seed for reproducibility purposes. Default is None (meaning no seed is used).
-    Returns
-    -------
-    float
-        lower CI bound, upper CI bound.
+    Get the [CLS] embedding from the output of the base BERT model
     """
-    assert len(scores_a) == len(scores_b), "Scores have to be of same length."
-    assert (
-        len(scores_a) > 0 and len(scores_b) > 0
-    ), "Both lists of scores must be non-empty."
-    assert num_samples > 0, "num_samples must be positive, {} found.".format(
-        num_samples
+    encoding = bert_tokenizer.encode(
+        text = f"[CLS] {sample['premise']} [SEP] {sample['hypothesis']} [SEP]",
+        add_special_tokens = True,  # Add [CLS] and [SEP]
+        max_length = 128,
+        padding = "max_length",
+        return_attention_mask = True,
+        return_tensors = "pt"
     )
 
-    N = len(scores_a)
-
-    # Set seeds for different jobs if applicable
-    # "Sub-seeds" for jobs are just seed argument + job index
-    seeds = (
-        [None] * num_samples
-        if seed is None
-        else [seed + offset for offset in range(1, num_samples + 1)]
-    )
-
-    def _bootstrap_iter(seed: Optional[int] = None):
-        """
-        One bootstrap iteration. Wrapped in a function so it can be handed to joblib.Parallel.
-        """
-        # When running multiple jobs, modules have to be re-imported for some reason to avoid an error
-        # Use dir() to check whether module is available in local scope:
-        # https://stackoverflow.com/questions/30483246/how-to-check-if-a-module-has-been-imported
-        if "np" not in dir():
-            import numpy as np
-
-        if seed is not None:
-            np.random.seed(seed)
-
-        boot_sample_inds = np.random.randint(0, N, N)  # sample with repetitions
-        temp_gold_y = np.zeros(N)
-        temp_pred_y = np.zeros(N)
-        for ii, ind in enumerate(boot_sample_inds):
-            temp_gold_y[ii] = scores_a[ind]
-            temp_pred_y[ii] = scores_b[ind]
-
-        # resampled_scores_a = np.random.choice(scores_a, N)
-        # resampled_scores_b = np.random.choice(scores_b, N)
-        new_delta = accuracy_score(temp_gold_y, temp_pred_y)
-        return new_delta
-
-    # Initialize worker pool and start iterations
-    parallel = Parallel(n_jobs=num_jobs)
-    samples = parallel(
-        delayed(_bootstrap_iter)(seed)
-        for _, seed in zip(range(num_samples), seeds)
-    )
-    # Percentile Bootstrap
-    p = (alpha / 2.0) * 100
-    lower = max(0.0, np.percentile(samples, p))
-    p = (1.0 - (alpha / 2.0)) * 100
-    upper = min(1.0, np.percentile(samples, p))
-
-    # for normal bootstrap
-    std_sample = np.std(samples)
-    z = scipy.stats.norm.ppf((1 + alpha) / 2.0)
-    avg_delta = np.average(samples)
-    lower_normal = avg_delta - std_sample * z
-    upper_normal = avg_delta + std_sample * z
-
-    # Empirical Bootstrap
-
-    return lower, upper, lower_normal, upper_normal
+    outputs = bert_model.forward(encoding, output_hidden_states=True)
+    last_layer_outputs = outputs[0]  # [batch_size, tokens, dimension]
+    cls_vector = last_layer_outputs[0, 0, :]
+    return cls_vector.detach().numpy()
 
 
-
-@score_pair_conversion
-def weighted_bootstrap_CI(
-    scores_a: ArrayLike,
-    scores_b: ArrayLike,
-    scores_unlabeled: ArrayLike,
-    weights: ArrayLike,
-    alpha: float = 0.95,
-    num_samples: int = 1000,
-    num_jobs: int = 1,
-    seed: Optional[int] = None,
-) -> (float, float):
+def bayesian_generator(labeled_ds: datasets.arrow_dataset.Dataset,
+        nearest_indices: NDArray[np.int32], distances: NDArray[np.number],
+        batch_size: int = 32, shuffle_data: bool = True
+    ) -> Generator[tuple[NDArray, NDArray], None, None]
     """
-    Implementation of paired bootstrap test. A p-value is being estimated by comparing the mean of scores
-    for two algorithms to the means of resampled populations, where `num_samples` determines the number of
-    times we resample.
-    The test is single-tailed, where we want to verify that the algorithm corresponding to `scores_a` is better than
-    the one `scores_b` originated from.
-    Parameters
-    ----------
-    scores_a: ArrayLike
-        Scores of algorithm A.
-    scores_b: ArrayLike
-        Scores of algorithm B.
-    alpha: float
-        significance level
-    num_samples: int
-        Number of bootstrap samples used for estimation.
-    num_jobs: int
-        Number of threads that bootstrap iterations are divided among.
-    seed: Optional[int]
-        Set seed for reproducibility purposes. Default is None (meaning no seed is used).
-    Returns
-    -------
-    float
-        lower CI bound, upper CI bound.
+    Generate samples by performing weighted sampling
+
+    :param labeled_ds: the labeled dataset
+    :param nearest_indices: The ith row contains the indices of the k closest
+        unlabeled samples to the ith labeled sample
+    :param distances: The entry at indices (i, j) contains the distance between
+        labeled sample i and unlabeled sample nearest_indices[i, j]
+    :returns: a tuple consisting of a batch of train samples and their
+        associated labels
     """
-    assert len(scores_a) == len(scores_b), "Scores have to be of same length."
-    assert (
-        len(scores_a) > 0 and len(scores_b) > 0
-    ), "Both lists of scores must be non-empty."
-    assert num_samples > 0, "num_samples must be positive, {} found.".format(
-        num_samples
-    )
-
-    N = len(scores_a)
-    N_u = len(scores_unlabeled)
-
-    # Set seeds for different jobs if applicable
-    # "Sub-seeds" for jobs are just seed argument + job index
-    seeds = (
-        [None] * num_samples
-        if seed is None
-        else [seed + offset for offset in range(1, num_samples + 1)]
-    )
-
-    def _bootstrap_iter(seed: Optional[int] = None):
+    # Convert distances to probabilities
+    def get_probabilities(distances: NDArray[np.number]) -> NDArray[np.number]:
         """
-        One bootstrap iteration. Wrapped in a function so it can be handed to joblib.Parallel.
+        Convert a list of distances into probabilities, weighted by inverse of
+        distance
         """
-        # When running multiple jobs, modules have to be re-imported for some reason to avoid an error
-        # Use dir() to check whether module is available in local scope:
-        # https://stackoverflow.com/questions/30483246/how-to-check-if-a-module-has-been-imported
-        if "np" not in dir():
-            import numpy as np
+        inv_distances = distances ** -1
+        normalized = inv_distances / sum(inv_distances)
+        return normalized
+    probabilities = np.apply_along_axis(get_probabilities, axis=1, arr=distances)
 
-        if seed is not None:
-            np.random.seed(seed)
+    unlabeled_ds_size = len(nearest_indices)
+    unlabeled_ds_indices = list(range(unlabeled_ds_size))
 
-        unlabeled_boot_sample_inds = np.random.randint(0, N_u, N)  # sample with repetitions
-        boot_sample_inds = np.zeros(N)
-        for ind, unlabeled_ind in enumerate(unlabeled_boot_sample_inds):
-            boot_sample_inds[ind] = np.argmax(np.random.multinomial(1, weights[unlabeled_ind], size=1))
-        resampled_scores_a = np.zeros(N)
-        resampled_scores_b = np.zeros(N)
-        for ii, ind in enumerate(boot_sample_inds):
-            resampled_scores_a[ii] = scores_a[int(ind)]
-            resampled_scores_b[ii] = scores_b[int(ind)]
+    # Loop forever
+    while True:
+        if shuffle_data:
+            random.shuffle(unlabeled_ds_indices)
 
-        # resampled_scores_a = np.random.choice(scores_a, N)
-        # resampled_scores_b = np.random.choice(scores_b, N)
-        new_delta = accuracy_score(resampled_scores_a, resampled_scores_b)
-        return new_delta
+        # Iterate through batches
+        for batch_start in range(0, unlabeled_ds_size, batch_size):
+            # Crete X and Y arrays
+            X_train = []
+            Y_train = []
 
-    # Initialize worker pool and start iterations
-    parallel = Parallel(n_jobs=num_jobs)
-    samples = parallel(
-        delayed(_bootstrap_iter)(seed)
-        for _, seed in zip(range(num_samples), seeds)
+            # Iterate through batch
+            unlabeled_batch = unlabeled_ds_indices[batch_start:batch_start+batch_size]
+            for unlabeled_indx in unlabeled_batch:
+                labeled_indx = np.random.choice(nearest_indices[unlabeled_indx], p=probabilities[unlabeled_indx])
+                labeled_sample = labeled_ds[labeled_indx]
+                X_train.append(labeled_sample["encoding"])
+                Y_train.append(labeled_sample["label"])
+            
+            yield np.array(X_train), np.array(Y_train)
+
+
+def nlp_experiment(seed: int, verbose: bool = False):
+    if verbose:
+        print("Downloading datasets...")
+
+    mnli_train: datasets.arrow_dataset.Dataset = load_dataset(mnli_ds_name, split="train")  # type: ignore
+    snli_train: datasets.arrow_dataset.Dataset = load_dataset(snli_ds_name, split="train")  # type: ignore
+    snli_test: datasets.arrow_dataset.Dataset = load_dataset(snli_ds_name, split="validation")  # type: ignore
+
+    # Get kNN matrix
+    if verbose:
+        print("Calculating kNN matrix...")
+    nearest_indices, distances = get_approx_knn_matrix(
+        unlabeled_ds = mnli_train,
+        labeled_ds = snli_train,
+        encoder = bert_cls_vector,
+        k = 10,
+        seed = seed,
+        verbose = verbose
     )
-    # Percentile Bootstrap
-    p = (alpha / 2.0) * 100
-    lower = max(0.0, np.percentile(samples, p))
-    p = (1.0 - (alpha / 2.0))* 100
-    upper = min(1.0, np.percentile(samples, p))
 
-    # for normal bootstrap
-    std_sample = np.std(samples)
-    z = scipy.stats.norm.ppf((1 + alpha) / 2.0)
-    avg_delta = np.average(samples)
-    lower_normal = avg_delta - std_sample * z
-    upper_normal = avg_delta + std_sample * z
+    generator = bayesian_generator(snli_train, nearest_indices, distances)
 
-    # Empirical Bootstrap
+    # TODO: fine tune the BERT model to the generator
 
-
-    return lower, upper, lower_normal, upper_normal
+if __name__ == '__main__':
+    nlp_experiment(seed = 0, verbose = True)
