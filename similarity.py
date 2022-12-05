@@ -42,8 +42,8 @@ def get_approx_knn_matrix(unlabeled_ds: datasets.arrow_dataset.Dataset,
                           k: int, seed: int = 0, verbose: bool = False
                          ) -> tuple[NDArray[np.int32], NDArray[np.number]]:
     """
-    Finds the approximate k nearest neighbors in the unlabeled dataset for each
-    sample in the labeled dataset using the PyNNDescent library:
+    Finds the approximate k nearest neighbors in the labeled dataset for each
+    sample in the unlabeled dataset using the PyNNDescent library:
     https://pynndescent.readthedocs.io/
 
     :param unlabeled_ds: the unlabeled dataset
@@ -51,9 +51,9 @@ def get_approx_knn_matrix(unlabeled_ds: datasets.arrow_dataset.Dataset,
     :param encoder: a function that converts a string into an embedding
     :returns:
         - array 'nearest_indices' in which the ith row contains the indices of
-        the k closest unlabeled samples to the ith labeled sample
+        the k closest labeled samples to the ith unlabeled sample
         - array 'distances' in which the entry at indices (i, j) contains the
-        distance between labeled sample i and unlabeled sample nearest_indices[i, j]
+        distance between unlabeled sample i and labeled sample nearest_indices[i, j]
     """
     def normalized_encoder(sample: dict[str, torch.Tensor]) -> NDArray[np.number]:
         """
@@ -69,21 +69,21 @@ def get_approx_knn_matrix(unlabeled_ds: datasets.arrow_dataset.Dataset,
 
     print(unlabeled_ds.select(range(5))["encoding"])
 
-    # Index unlabeled data
+    # Index labeled data
     if verbose:
-        print("Indexing unlabeled data...")
+        print("Indexing labeled data...")
     nn_graph = pynndescent.NNDescent(
-        unlabeled_ds["encoding"],
+        labeled_ds["encoding"],
         metric = "euclidean",
         n_neighbors = 3 * k,
         random_state = seed,
         verbose = verbose
     )
 
-    # Get nearest neighbours
+    # Get nearest neighbours for each sample in the unlabeled dataset
     if verbose:
         print("Finding nearest neighbors...")
-    nearest_indices, distances = nn_graph.query(labeled["encoding"], k)
+    nearest_indices, distances = nn_graph.query(unlabeled_ds["encoding"], k)
 
     print(nearest_indices[:5])
 
