@@ -2,3 +2,7 @@ tensorflow-text
 tf-models-official
 tfds-nightly
 jupyter
+datasets
+pynndescent
+rouge-score
+transformers

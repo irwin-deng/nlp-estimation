@@ -38,7 +38,7 @@ def get_knn_matrix(unlabeled: list[str], labeled: list[str],
 
 def get_approx_knn_matrix(unlabeled_ds: datasets.arrow_dataset.Dataset,
                           labeled_ds: datasets.arrow_dataset.Dataset,
-                          encoder: Callable[[dict[str, torch.Tensor]], ArrayLike],
+                          encoder: Callable[[datasets.arrow_dataset.Batch], ArrayLike],
                           k: int, seed: int = 0, verbose: bool = False
                          ) -> tuple[NDArray[np.int32], NDArray[np.number]]:
     """
@@ -48,26 +48,31 @@ def get_approx_knn_matrix(unlabeled_ds: datasets.arrow_dataset.Dataset,
 
     :param unlabeled_ds: the unlabeled dataset
     :param labeled_ds: the labeled dataset
-    :param encoder: a function that converts a string into an embedding
+    :param encoder: a function that takes in a batch of samples and outputs
+        each sample's respective encoding as a vector
     :returns:
         - array 'nearest_indices' in which the ith row contains the indices of
         the k closest labeled samples to the ith unlabeled sample
         - array 'distances' in which the entry at indices (i, j) contains the
         distance between unlabeled sample i and labeled sample nearest_indices[i, j]
     """
-    def normalized_encoder(sample: dict[str, torch.Tensor]) -> NDArray[np.number]:
+
+    def normalized_encoder(batch: datasets.arrow_dataset.Batch) -> NDArray[np.number]:
         """
         Normalize embedding to be a 1 dimensional ndarray
         """
-        return np.array(encoder(sample)).flatten()
+        encoded = np.array(encoder(batch))
+        return encoded.reshape(encoded.shape[0], -1)
+
+    batch_size = 256
 
     # Encode unlabeled and labeled data
     if verbose:
-        print("Encoding data with BERT encoder...")
-    unlabeled_ds.map(lambda sample: {"encoding": normalized_encoder(sample)})
-    labeled_ds.map(lambda sample: {"encoding": normalized_encoder(sample)})
-
-    print(unlabeled_ds.select(range(5))["encoding"])
+        print("Encoding unlabeled data with BERT encoder...")
+    unlabeled_ds = unlabeled_ds.map(lambda sample: {"encoding": normalized_encoder(sample)}, batched = True, batch_size = batch_size)
+    if verbose:
+        print("Encoding labeled data with BERT encoder...")
+    labeled_ds = labeled_ds.map(lambda sample: {"encoding": normalized_encoder(sample)}, batched = True, batch_size = batch_size)
 
     # Index labeled data
     if verbose:
