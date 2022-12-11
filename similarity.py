@@ -1,7 +1,6 @@
 import numpy as np
 from numpy.typing import ArrayLike, NDArray
 from typing import Callable
-import torch
 import datasets
 import pynndescent
 
@@ -68,11 +67,13 @@ def get_approx_knn_matrix(unlabeled_ds: datasets.arrow_dataset.Dataset,
 
     # Encode unlabeled and labeled data
     if verbose:
-        print("Encoding unlabeled data with BERT encoder...")
-    unlabeled_ds = unlabeled_ds.map(lambda sample: {"encoding": normalized_encoder(sample)}, batched = True, batch_size = batch_size)
+        print("Encoding unlabeled data as a vector...")
+    unlabeled_ds = unlabeled_ds.map(lambda batch:
+        {"encoding": normalized_encoder(batch)}, batched = True, batch_size = batch_size)
     if verbose:
-        print("Encoding labeled data with BERT encoder...")
-    labeled_ds = labeled_ds.map(lambda sample: {"encoding": normalized_encoder(sample)}, batched = True, batch_size = batch_size)
+        print("Encoding labeled data as a vector...")
+    labeled_ds = labeled_ds.map(lambda batch:
+        {"encoding": normalized_encoder(batch)}, batched = True, batch_size = batch_size)
 
     # Index labeled data
     if verbose:
