@@ -70,7 +70,7 @@ def bert_cls_vector(sample: dict[str, torch.Tensor]) -> NDArray[np.int32]:
     return cls_vector.detach().numpy()
 
 
-def bayesian_sampler(labeled_ds: datasets.arrow_dataset.Dataset,
+def weighted_sampler(labeled_ds: datasets.arrow_dataset.Dataset,
         unlabeled_indices: NDArray[np.int32], nearest_indices: NDArray[np.int32],
         probabilities: NDArray[np.number]) -> dict[str, torch.tensor]:
     """
@@ -132,7 +132,7 @@ def random_sampler(labeled_ds: datasets.arrow_dataset.Dataset,
     return sampled_batch
 
 
-def nlp_experiment(seed: int, bayesian: bool = True, verbose: bool = False):
+def nlp_experiment(seed: int, weighted: bool = True, verbose: bool = False):
     np.random.seed(seed)
     torch.manual_seed(seed)
 
@@ -142,7 +142,7 @@ def nlp_experiment(seed: int, bayesian: bool = True, verbose: bool = False):
     snli_train: datasets.arrow_dataset.Dataset = load_dataset(snli_ds_name, split="train").with_format("np")  # type: ignore
     snli_test: datasets.arrow_dataset.Dataset = load_dataset(snli_ds_name, split="validation").with_format("np")  # type: ignore
 
-    if bayesian:
+    if weighted:
         # Get kNN matrix
         if verbose:
             print("Calculating kNN matrix...")
@@ -200,7 +200,7 @@ def nlp_experiment(seed: int, bayesian: bool = True, verbose: bool = False):
     n_batches = math.ceil(n_train_samples / batch_size)
     n_epochs = 5
     if verbose:
-        print("Training BERT Classifier...")
+        print(f"Training BERT Classifier with batch size {batch_size}...")
     for epoch in range(n_epochs):
         np.random.shuffle(train_indices)
 
@@ -213,8 +213,8 @@ def nlp_experiment(seed: int, bayesian: bool = True, verbose: bool = False):
             loss_sum, accuracy_sum, num_samples = 0.0, 0.0, 0
 
             for batch_indices in tqdm_epoch:
-                if bayesian:
-                    batch = bayesian_sampler(labeled_ds = mnli_train,
+                if weighted:
+                    batch = weighted_sampler(labeled_ds = mnli_train,
                         unlabeled_indices = batch_indices, nearest_indices = nearest_indices,
                         probabilities = probabilities)
                 else:
@@ -261,4 +261,4 @@ def nlp_experiment(seed: int, bayesian: bool = True, verbose: bool = False):
 
 
 if __name__ == '__main__':
-    nlp_experiment(seed = 0, bayesian = True, verbose = True)
+    nlp_experiment(seed = 0, weighted = True, verbose = True)

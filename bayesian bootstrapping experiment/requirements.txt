@@ -1,0 +1,4 @@
+datasets
+pynndescent
+rouge-score
+transformers

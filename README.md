@@ -6,3 +6,4 @@
 ## Bayesian bootstrapping experiment
 - bootstrap.py: Contains code for bayesian bootstrapping
 - similarity.py: Contains functions for determining similarity between samples
+- bert_model.py: Contains the BERT classifier model that we are fine-tuning
