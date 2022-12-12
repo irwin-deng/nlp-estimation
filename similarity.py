@@ -67,11 +67,11 @@ def get_approx_knn_matrix(unlabeled_ds: datasets.arrow_dataset.Dataset,
 
     # Encode unlabeled and labeled data
     if verbose:
-        print("Encoding unlabeled data as a vector...")
+        print("Encoding unlabeled data as vectors...")
     unlabeled_ds = unlabeled_ds.map(lambda batch:
         {"encoding": normalized_encoder(batch)}, batched = True, batch_size = batch_size)
     if verbose:
-        print("Encoding labeled data as a vector...")
+        print("Encoding labeled data as vectors...")
     labeled_ds = labeled_ds.map(lambda batch:
         {"encoding": normalized_encoder(batch)}, batched = True, batch_size = batch_size)
 
@@ -90,8 +90,6 @@ def get_approx_knn_matrix(unlabeled_ds: datasets.arrow_dataset.Dataset,
     if verbose:
         print("Finding nearest neighbors...")
     nearest_indices, distances = nn_graph.query(unlabeled_ds["encoding"], k)
-
-    print(nearest_indices[:5])
 
     return nearest_indices, distances
 

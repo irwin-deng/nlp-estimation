@@ -11,8 +11,12 @@ from tqdm import tqdm
 from bert_model import BertClassifier
 
 torch.cuda.empty_cache()
-device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-# device = torch.device("cpu")
+if torch.cuda.is_available():
+    device = torch.device("cuda")
+    print(f"Using CUDA device {torch.cuda.get_device_name(device)}")
+else:
+    device = torch.device("cpu")
+    print(f"Using CPU")
 
 bert_tokenizer = transformers.AutoTokenizer.from_pretrained('bert-base-uncased')
 bert_base = transformers.AutoModel.from_pretrained('bert-base-uncased').to(device)
@@ -82,7 +86,7 @@ def bayesian_sampler(labeled_ds: datasets.arrow_dataset.Dataset,
     :param probabilities: The entry at indices (i, j) contains the probability
         of sampling the jth index in the nearest_indices array given the
         unlabeled sample with index i in the unlabeled dataset
-    :returns: a dict in which the keys are the column names in the batch,
+    :returns: a dict in which the keys are the column names,
         and the values are the values of that column for the batch
     """
 
@@ -103,7 +107,32 @@ def bayesian_sampler(labeled_ds: datasets.arrow_dataset.Dataset,
     return sampled_batch
 
 
-def nlp_experiment(seed: int, verbose: bool = False):
+def random_sampler(labeled_ds: datasets.arrow_dataset.Dataset,
+        batch_size: int) -> dict[str, torch.tensor]:
+    """
+    Generate a batch of size batch_size consisting of randomly sampled
+    observations (with replacement) from the labeled dataset
+
+    :param labeled_ds: the labeled dataset
+    :param batch_size: the number of samples to get for this batch
+    :returns: a dict in which the keys are the column names,
+        and the values are the values of that column for the batch
+    """
+
+    column_names = labeled_ds.format["columns"]
+    labeled_ds_size = len(labeled_ds)
+
+    labeled_indices = np.random.choice(labeled_ds_size, size=batch_size)
+
+    # Convert to a dict of tensors
+    sampled_batch = {}
+    for column in column_names:
+        sampled_batch[column] = torch.stack([labeled_ds[labeled_indx.item()][column]
+            for labeled_indx in labeled_indices])
+    return sampled_batch
+
+
+def nlp_experiment(seed: int, bayesian: bool = True, verbose: bool = False):
     np.random.seed(seed)
     torch.manual_seed(seed)
 
@@ -113,30 +142,31 @@ def nlp_experiment(seed: int, verbose: bool = False):
     snli_train: datasets.arrow_dataset.Dataset = load_dataset(snli_ds_name, split="train").with_format("np")  # type: ignore
     snli_test: datasets.arrow_dataset.Dataset = load_dataset(snli_ds_name, split="validation").with_format("np")  # type: ignore
 
-    # Get kNN matrix
-    if verbose:
-        print("Calculating kNN matrix...")
-    nearest_indices, distances = get_approx_knn_matrix(
-        unlabeled_ds = snli_train,
-        labeled_ds = mnli_train,
-        encoder = bert_cls_vector_batched,
-        k = 10,
-        seed = seed,
-        verbose = verbose
-    )
+    if bayesian:
+        # Get kNN matrix
+        if verbose:
+            print("Calculating kNN matrix...")
+        nearest_indices, distances = get_approx_knn_matrix(
+            unlabeled_ds = snli_train,
+            labeled_ds = mnli_train,
+            encoder = bert_cls_vector_batched,
+            k = 10,
+            seed = seed,
+            verbose = verbose
+        )
 
-    # Convert distances to probabilities
-    def get_probabilities(distances: NDArray[np.number]) -> NDArray[np.number]:
-        """
-        Convert a list of distances into probabilities, weighted by inverse of
-        distance
-        """
-        inv_distances = distances ** -1
-        normalized = inv_distances / sum(inv_distances)
-        return normalized
-    probabilities = np.apply_along_axis(get_probabilities, axis=1, arr=distances)
+        # Convert distances to probabilities
+        def get_probabilities(distances: NDArray[np.number]) -> NDArray[np.number]:
+            """
+            Convert a list of distances into probabilities, weighted by inverse of
+            distance
+            """
+            inv_distances = distances ** -1
+            normalized = inv_distances / sum(inv_distances)
+            return normalized
+        probabilities = np.apply_along_axis(get_probabilities, axis=1, arr=distances)
 
-    batch_size = 256
+    batch_size = 64
 
     # Encode datasets
     if verbose:
@@ -168,7 +198,7 @@ def nlp_experiment(seed: int, verbose: bool = False):
     n_train_samples = len(snli_train)
     train_indices = np.arange(n_train_samples)
     n_batches = math.ceil(n_train_samples / batch_size)
-    n_epochs = 3
+    n_epochs = 5
     if verbose:
         print("Training BERT Classifier...")
     for epoch in range(n_epochs):
@@ -178,13 +208,17 @@ def nlp_experiment(seed: int, verbose: bool = False):
         bert_classifier.train()
 
         # Iterate over all training batches
-        with tqdm(np.split(train_indices, n_batches), unit="batch") as tqdm_epoch:
+        with tqdm(np.array_split(train_indices, n_batches), unit="batch") as tqdm_epoch:
             tqdm_epoch.set_description(f"Epoch {epoch}")
+            loss_sum, accuracy_sum, num_samples = 0.0, 0.0, 0
 
             for batch_indices in tqdm_epoch:
-                batch = bayesian_sampler(labeled_ds = mnli_train,
-                    unlabeled_indices = batch_indices, nearest_indices = nearest_indices,
-                    probabilities = probabilities)
+                if bayesian:
+                    batch = bayesian_sampler(labeled_ds = mnli_train,
+                        unlabeled_indices = batch_indices, nearest_indices = nearest_indices,
+                        probabilities = probabilities)
+                else:
+                    batch = random_sampler(labeled_ds = mnli_train, batch_size = batch_size)
                 target = batch["label"].to(device)
 
                 optimizer.zero_grad()
@@ -196,24 +230,29 @@ def nlp_experiment(seed: int, verbose: bool = False):
                 loss.backward()
                 optimizer.step()
 
-                accuracy = metrics["accuracy"]
-                tqdm_epoch.set_postfix({"train_loss": loss.item(), "train_accuracy": accuracy})
+                batch_size = len(batch_indices)
+                num_samples += batch_size
+                loss_sum += loss.item() * batch_size
+                accuracy_sum += metrics["accuracy"] * batch_size
+                tqdm_epoch.set_postfix({"train_loss": loss_sum / num_samples,
+                    "train_accuracy": accuracy_sum / num_samples})
             tqdm_epoch.refresh()
     
         # Calculate validation loss + accuracy
         bert_classifier.train(False)
-        validation_metrics = {}
         for batch in validation_loader:
+            loss_sum, accuracy_sum, num_samples = 0.0, 0.0, 0
+
             target = batch["label"].to(device)
             output = bert_classifier.forward(batch["input_ids"].to(device),
                 batch["attention_mask"].to(device))
-            for metric, value in get_eval_metrics(target, output).items():
-                metric_list = validation_metrics.get(metric, [])
-                metric_list.append(value)
-                validation_metrics[metric] = metric_list
-        loss = np.mean(np.array([batch_loss.item() for batch_loss in validation_metrics["loss"]]))
-        accuracy = np.mean(np.array(validation_metrics['accuracy']))
-        print(f"\tvalidation_loss: {loss}, validation_accuracy: {accuracy}")
+        
+            batch_size = len(batch_indices)
+            num_samples += batch_size
+            loss_sum += metrics["loss"].item() * batch_size
+            accuracy_sum += metrics["accuracy"] * batch_size
+        print(f"\tvalidation_loss: {loss_sum / num_samples}, "
+              f"validation_accuracy: {accuracy_sum / num_samples}")
     
     # Save model
     if verbose:
@@ -222,4 +261,4 @@ def nlp_experiment(seed: int, verbose: bool = False):
 
 
 if __name__ == '__main__':
-    nlp_experiment(seed = 0, verbose = True)
+    nlp_experiment(seed = 0, bayesian = True, verbose = True)
