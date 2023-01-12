@@ -7,6 +7,7 @@ import datasets
 from datasets import load_dataset
 from similarity import get_approx_knn_matrix
 import transformers
+from transformers import get_linear_schedule_with_warmup
 from tqdm import tqdm
 from bert_model import BertClassifier
 
@@ -25,7 +26,7 @@ bert_classifier = BertClassifier(n_labels=3).to(device)
 mnli_ds_name = "multi_nli"
 snli_ds_name = "snli"
 
-def get_bert_encoding(batch: datasets.arrow_dataset.Batch) -> transformers.BatchEncoding:
+def get_bert_encoding(batch: dict[str, NDArray]) -> transformers.BatchEncoding:
     encoding = bert_tokenizer.batch_encode_plus(
         [f"[CLS] {premise} [SEP] {hypothesis} [SEP]"
             for premise, hypothesis in zip(batch["premise"], batch["hypothesis"])],
@@ -39,7 +40,7 @@ def get_bert_encoding(batch: datasets.arrow_dataset.Batch) -> transformers.Batch
     return encoding
 
 
-def bert_cls_vector_batched(batch: datasets.arrow_dataset.Batch) -> NDArray[np.int32]:
+def bert_cls_vector_batched(batch: dict[str, NDArray]) -> NDArray[np.int32]:
     """
     Get the [CLS] embedding from the output of the base BERT model
     """
@@ -132,7 +133,8 @@ def random_sampler(labeled_ds: datasets.arrow_dataset.Dataset,
     return sampled_batch
 
 
-def nlp_experiment(seed: int, weighted: bool = True, verbose: bool = False):
+def nlp_experiment(seed: int, weighted: bool = True,
+                   save_checkpoints: bool = False, verbose: bool = False) -> None:
     np.random.seed(seed)
     torch.manual_seed(seed)
 
@@ -178,7 +180,7 @@ def nlp_experiment(seed: int, weighted: bool = True, verbose: bool = False):
     snli_test = snli_test.map(lambda batch: get_bert_encoding(batch), batched=True, batch_size=batch_size)
     snli_test.set_format(type="torch", columns=["input_ids", "token_type_ids", "attention_mask", "label"])
 
-    optimizer = torch.optim.AdamW(bert_classifier.parameters())
+    optimizer = torch.optim.Adam(bert_classifier.parameters(), lr=2e-5)
     loss_func = torch.nn.CrossEntropyLoss()
     validation_loader = torch.utils.data.DataLoader(snli_test, batch_size = batch_size)
 
@@ -199,9 +201,16 @@ def nlp_experiment(seed: int, weighted: bool = True, verbose: bool = False):
     train_indices = np.arange(n_train_samples)
     n_batches = math.ceil(n_train_samples / batch_size)
     n_epochs = 5
+    n_train_steps = n_epochs * n_batches
+    scheduler = get_linear_schedule_with_warmup(
+        optimizer,
+        num_warmup_steps = n_train_steps // 10,
+        num_training_steps = n_train_steps
+    )
+
     if verbose:
         print(f"Training BERT Classifier with batch size {batch_size}...")
-    for epoch in range(n_epochs):
+    for epoch in range(1, n_epochs + 1):
         np.random.shuffle(train_indices)
 
         # Allow model to be trained
@@ -210,7 +219,7 @@ def nlp_experiment(seed: int, weighted: bool = True, verbose: bool = False):
         # Iterate over all training batches
         with tqdm(np.array_split(train_indices, n_batches), unit="batch") as tqdm_epoch:
             tqdm_epoch.set_description(f"Epoch {epoch}")
-            loss_sum, accuracy_sum, num_samples = 0.0, 0.0, 0
+            batch_loss_sum, batch_n_correct, batch_n_samples = 0.0, 0.0, 0
 
             for batch_indices in tqdm_epoch:
                 if weighted:
@@ -229,31 +238,37 @@ def nlp_experiment(seed: int, weighted: bool = True, verbose: bool = False):
                 loss = metrics["loss"]
                 loss.backward()
                 optimizer.step()
+                scheduler.step()
 
-                batch_size = len(batch_indices)
-                num_samples += batch_size
-                loss_sum += loss.item() * batch_size
-                accuracy_sum += metrics["accuracy"] * batch_size
-                tqdm_epoch.set_postfix({"train_loss": loss_sum / num_samples,
-                    "train_accuracy": accuracy_sum / num_samples})
+                current_batch_size = len(batch_indices)
+                batch_n_samples += current_batch_size
+                batch_loss_sum += loss.item() * current_batch_size
+                batch_n_correct += metrics["accuracy"] * current_batch_size
+                tqdm_epoch.set_postfix({"train_loss": batch_loss_sum / batch_n_samples,
+                    "train_accuracy": batch_n_correct / batch_n_samples})
             tqdm_epoch.refresh()
-    
+
         # Calculate validation loss + accuracy
         bert_classifier.train(False)
+        valid_loss_sum, valid_n_correct, valid_n_samples = 0.0, 0.0, 0
         for batch in validation_loader:
-            loss_sum, accuracy_sum, num_samples = 0.0, 0.0, 0
-
             target = batch["label"].to(device)
             output = bert_classifier.forward(batch["input_ids"].to(device),
                 batch["attention_mask"].to(device))
         
-            batch_size = len(batch_indices)
-            num_samples += batch_size
-            loss_sum += metrics["loss"].item() * batch_size
-            accuracy_sum += metrics["accuracy"] * batch_size
-        print(f"\tvalidation_loss: {loss_sum / num_samples}, "
-              f"validation_accuracy: {accuracy_sum / num_samples}")
-    
+            current_batch_size = len(batch_indices)
+            valid_n_samples += current_batch_size
+            valid_loss_sum += metrics["loss"].item() * current_batch_size
+            valid_n_correct += metrics["accuracy"] * current_batch_size
+        print(f"\tvalidation_loss: {valid_loss_sum / valid_n_samples}, "
+              f"validation_accuracy: {valid_n_correct / valid_n_samples}")
+        
+        # Save model checkpoint
+        if save_checkpoints and epoch < n_epochs:
+            if verbose:
+                print(f"Saving BERT Classifier checkpoint to bert_classifier_checkpoint_{epoch}.pt")
+            torch.save(bert_classifier.state_dict(), f"bert_classifier_checkpoint_{epoch}.pt")
+
     # Save model
     if verbose:
         print("Saving BERT Classifier to bert_classifier.pt")
@@ -261,4 +276,4 @@ def nlp_experiment(seed: int, weighted: bool = True, verbose: bool = False):
 
 
 if __name__ == '__main__':
-    nlp_experiment(seed = 0, weighted = True, verbose = True)
+    nlp_experiment(seed = 0, weighted = True, save_checkpoints = False, verbose = True)
