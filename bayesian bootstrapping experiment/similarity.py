@@ -37,7 +37,7 @@ def get_knn_matrix(unlabeled: list[str], labeled: list[str],
 
 def get_approx_knn_matrix(unlabeled_ds: datasets.arrow_dataset.Dataset,
                           labeled_ds: datasets.arrow_dataset.Dataset,
-                          encoder: Callable[[datasets.arrow_dataset.Batch], ArrayLike],
+                          encoder: Callable[[dict[str, NDArray]], ArrayLike],
                           k: int, seed: int = 0, verbose: bool = False
                          ) -> tuple[NDArray[np.int32], NDArray[np.number]]:
     """
@@ -56,7 +56,7 @@ def get_approx_knn_matrix(unlabeled_ds: datasets.arrow_dataset.Dataset,
         distance between unlabeled sample i and labeled sample nearest_indices[i, j]
     """
 
-    def normalized_encoder(batch: datasets.arrow_dataset.Batch) -> NDArray[np.number]:
+    def normalized_encoder(batch: dict[str, NDArray]) -> NDArray[np.number]:
         """
         Normalize embedding to be a 1 dimensional ndarray
         """

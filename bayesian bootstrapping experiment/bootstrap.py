@@ -180,7 +180,7 @@ def nlp_experiment(seed: int, weighted: bool = True,
     snli_test = snli_test.map(lambda batch: get_bert_encoding(batch), batched=True, batch_size=batch_size)
     snli_test.set_format(type="torch", columns=["input_ids", "token_type_ids", "attention_mask", "label"])
 
-    optimizer = torch.optim.Adam(bert_classifier.parameters(), lr=2e-5)
+    optimizer = torch.optim.AdamW(bert_classifier.parameters(), lr=2e-5)
     loss_func = torch.nn.CrossEntropyLoss()
     validation_loader = torch.utils.data.DataLoader(snli_test, batch_size = batch_size)
 
@@ -200,13 +200,16 @@ def nlp_experiment(seed: int, weighted: bool = True,
     n_train_samples = len(snli_train)
     train_indices = np.arange(n_train_samples)
     n_batches = math.ceil(n_train_samples / batch_size)
-    n_epochs = 5
+    n_epochs = 3
     n_train_steps = n_epochs * n_batches
     scheduler = get_linear_schedule_with_warmup(
         optimizer,
         num_warmup_steps = n_train_steps // 10,
         num_training_steps = n_train_steps
     )
+
+    # Free up GPU memory
+    bert_base.cpu()
 
     if verbose:
         print(f"Training BERT Classifier with batch size {batch_size}...")
@@ -276,4 +279,4 @@ def nlp_experiment(seed: int, weighted: bool = True,
 
 
 if __name__ == '__main__':
-    nlp_experiment(seed = 0, weighted = True, save_checkpoints = False, verbose = True)
+    nlp_experiment(seed = 0, weighted = True, save_checkpoints = True, verbose = True)
