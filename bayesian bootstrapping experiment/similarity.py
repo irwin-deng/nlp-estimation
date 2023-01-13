@@ -63,7 +63,7 @@ def get_approx_knn_matrix(unlabeled_ds: datasets.arrow_dataset.Dataset,
         encoded = np.array(encoder(batch))
         return encoded.reshape(encoded.shape[0], -1)
 
-    batch_size = 256
+    batch_size = 128
 
     # Encode unlabeled and labeled data
     if verbose:

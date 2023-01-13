@@ -20,8 +20,7 @@ else:
     print(f"Using CPU")
 
 bert_tokenizer = transformers.AutoTokenizer.from_pretrained('bert-base-uncased')
-bert_base = transformers.AutoModel.from_pretrained('bert-base-uncased').to(device)
-bert_classifier = BertClassifier(n_labels=3).to(device)
+bert_base = transformers.AutoModel.from_pretrained('bert-base-uncased')
 
 mnli_ds_name = "multi_nli"
 snli_ds_name = "snli"
@@ -148,6 +147,7 @@ def nlp_experiment(seed: int, weighted: bool = True,
         # Get kNN matrix
         if verbose:
             print("Calculating kNN matrix...")
+        bert_base.to(device)
         nearest_indices, distances = get_approx_knn_matrix(
             unlabeled_ds = snli_train,
             labeled_ds = mnli_train,
@@ -156,6 +156,7 @@ def nlp_experiment(seed: int, weighted: bool = True,
             seed = seed,
             verbose = verbose
         )
+        bert_base.cpu()
 
         # Convert distances to probabilities
         def get_probabilities(distances: NDArray[np.number]) -> NDArray[np.number]:
@@ -170,32 +171,36 @@ def nlp_experiment(seed: int, weighted: bool = True,
 
     batch_size = 64
 
-    # Encode datasets
+    # Preprocess datasets by removing invalid data points and encoding inputs
     if verbose:
-        print("Encoding datasets with BERT encoder...")
-    mnli_train = mnli_train.map(lambda batch: get_bert_encoding(batch), batched=True, batch_size=batch_size)
-    mnli_train.set_format(type="torch", columns=["input_ids", "token_type_ids", "attention_mask", "label"])
-    snli_train = snli_train.map(lambda batch: get_bert_encoding(batch), batched=True, batch_size=batch_size)
-    snli_train.set_format(type="torch", columns=["input_ids", "token_type_ids", "attention_mask", "label"])
-    snli_test = snli_test.map(lambda batch: get_bert_encoding(batch), batched=True, batch_size=batch_size)
-    snli_test.set_format(type="torch", columns=["input_ids", "token_type_ids", "attention_mask", "label"])
+        print("Preprocessing datasets...")
+    def preprocess(dataset: datasets.arrow_dataset.Dataset):
+        dataset = dataset.filter(lambda example: example["label"] != -1)
+        dataset = dataset.map(lambda batch: get_bert_encoding(batch), batched=True, batch_size=batch_size)
+        dataset.set_format(type="torch", columns=["input_ids", "token_type_ids", "attention_mask", "label"])
+        return dataset
+    mnli_train = preprocess(mnli_train)
+    snli_train = preprocess(snli_train)
+    snli_test = preprocess(snli_test)
 
+    bert_classifier = BertClassifier(n_labels=3)
     optimizer = torch.optim.AdamW(bert_classifier.parameters(), lr=2e-5)
     loss_func = torch.nn.CrossEntropyLoss()
     validation_loader = torch.utils.data.DataLoader(snli_test, batch_size = batch_size)
 
     # Returns a dict of evaluation metrics for a classification model given a
     # target tensor and the model's output tensor
-    def get_eval_metrics(target: torch.tensor, output: torch.tensor) -> dict[str, Any]:
+    def get_batch_eval_metrics(target: torch.tensor, output: torch.tensor) -> dict[str, Any]:
         """
         Returns a dict of evaluation metrics for a classification model given a
         target tensor and the model's output tensor
         """
+        current_batch_size = len(target)
         loss = loss_func(output, target)
         predictions = output.argmax(dim=1, keepdim=True).squeeze()
         n_correct = (predictions == target).sum().item()
-        accuracy = n_correct / batch_size
-        return {"loss": loss, "accuracy": accuracy}
+        accuracy = n_correct / current_batch_size
+        return {"batch_size": current_batch_size, "loss": loss, "accuracy": accuracy}
 
     n_train_samples = len(snli_train)
     train_indices = np.arange(n_train_samples)
@@ -208,11 +213,9 @@ def nlp_experiment(seed: int, weighted: bool = True,
         num_training_steps = n_train_steps
     )
 
-    # Free up GPU memory
-    bert_base.cpu()
-
     if verbose:
         print(f"Training BERT Classifier with batch size {batch_size}...")
+    bert_classifier.to(device)
     for epoch in range(1, n_epochs + 1):
         np.random.shuffle(train_indices)
 
@@ -237,16 +240,15 @@ def nlp_experiment(seed: int, weighted: bool = True,
                 output = bert_classifier.forward(batch["input_ids"].to(device),
                     batch["attention_mask"].to(device))
 
-                metrics = get_eval_metrics(target, output)
+                metrics = get_batch_eval_metrics(target, output)
                 loss = metrics["loss"]
                 loss.backward()
                 optimizer.step()
                 scheduler.step()
 
-                current_batch_size = len(batch_indices)
-                batch_n_samples += current_batch_size
-                batch_loss_sum += loss.item() * current_batch_size
-                batch_n_correct += metrics["accuracy"] * current_batch_size
+                batch_n_samples += metrics["batch_size"]
+                batch_loss_sum += loss.item() * metrics["batch_size"]
+                batch_n_correct += metrics["accuracy"] * metrics["batch_size"]
                 tqdm_epoch.set_postfix({"train_loss": batch_loss_sum / batch_n_samples,
                     "train_accuracy": batch_n_correct / batch_n_samples})
             tqdm_epoch.refresh()
@@ -258,11 +260,11 @@ def nlp_experiment(seed: int, weighted: bool = True,
             target = batch["label"].to(device)
             output = bert_classifier.forward(batch["input_ids"].to(device),
                 batch["attention_mask"].to(device))
-        
-            current_batch_size = len(batch_indices)
-            valid_n_samples += current_batch_size
-            valid_loss_sum += metrics["loss"].item() * current_batch_size
-            valid_n_correct += metrics["accuracy"] * current_batch_size
+            metrics = get_batch_eval_metrics(target, output)
+
+            valid_n_samples += metrics["batch_size"]
+            valid_loss_sum += metrics["loss"].item() * metrics["batch_size"]
+            valid_n_correct += metrics["accuracy"] * metrics["batch_size"]
         print(f"\tvalidation_loss: {valid_loss_sum / valid_n_samples}, "
               f"validation_accuracy: {valid_n_correct / valid_n_samples}")
         
