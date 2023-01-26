@@ -13,7 +13,7 @@ def get_batch_eval_metrics(target: torch.tensor, output: torch.tensor,
     metrics["batch_size"] = current_batch_size
 
     predictions = output.argmax(dim=1, keepdim=True).squeeze()
-    n_correct = (predictions == target).sum().item()
+    n_correct = torch.sum(predictions == target)
     accuracy = n_correct / current_batch_size
     metrics["accuracy"] = accuracy
 
