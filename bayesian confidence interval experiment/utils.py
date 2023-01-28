@@ -1,5 +1,7 @@
 import torch
 from typing import Any, Callable
+from common import device
+
 
 def get_batch_eval_metrics(target: torch.tensor, output: torch.tensor,
         loss_func: Callable[[torch.Tensor, torch.Tensor], float] = None) -> dict[str, Any]:
@@ -22,3 +24,12 @@ def get_batch_eval_metrics(target: torch.tensor, output: torch.tensor,
         metrics["loss"] = loss
 
     return metrics
+
+
+def shuffle_tensor(tensor: torch.Tensor) -> torch.Tensor:
+    """
+    Create a new tensor that contains the randomly shuffled values of the input tensor
+    """
+    flattened_tensor = tensor.flatten()
+    shuffled_indices = torch.randperm(torch.numel(tensor), device=device)
+    return flattened_tensor[shuffled_indices].reshape(tensor.size())

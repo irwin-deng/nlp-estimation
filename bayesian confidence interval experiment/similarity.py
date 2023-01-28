@@ -1,7 +1,6 @@
-from typing import Callable
-import datasets
 import pynndescent
 import torch
+from tqdm import tqdm
 from common import bert_base, device
 
 
@@ -41,22 +40,25 @@ def get_knn_matrix(unlabeled_ds: dict[str, torch.Tensor],
         print("Generating kNN matrix...")
 
     batch_size = 128
+    unlabeled_ds_size = len(unlabeled_ds["label"])
+    labeled_ds_size = len(labeled_ds["label"])
 
     # Encode unlabeled and labeled data
     bert_base.to(device)
     if verbose:
         print("Calculating [CLS] vectors of unlabeled dataset...")
-    unlabeled_ds_size = len(unlabeled_ds["label"])
     unlabeled_ds["vector_encoding"] = torch.cat([
         bert_cls_vector_batched(unlabeled_ds, batch_indices)
-        for batch_indices in torch.split(torch.arange(unlabeled_ds_size, device=device), batch_size)])
+        for batch_indices in tqdm(torch.split(
+            torch.arange(unlabeled_ds_size, device=device), batch_size), disable=not verbose)])
 
-    if verbose:
-        print("Calculating [CLS] vectors of labeled dataset...")
-    labeled_ds_size = len(labeled_ds["label"])
-    labeled_ds["vector_encoding"] = torch.cat([
-        bert_cls_vector_batched(labeled_ds, batch_indices)
-        for batch_indices in torch.split(torch.arange(labeled_ds_size, device=device), batch_size)])
+    if labeled_ds != unlabeled_ds:
+        if verbose:
+            print("Calculating [CLS] vectors of labeled dataset...")
+        labeled_ds["vector_encoding"] = torch.cat([
+            bert_cls_vector_batched(labeled_ds, batch_indices)
+            for batch_indices in tqdm(torch.split(
+                torch.arange(labeled_ds_size, device=device), batch_size), disable=not verbose)])
     bert_base.cpu()
 
     # Get Euclidean distance between each sample in the labeled dataset and each sample in the unlabeled dataset
@@ -69,6 +71,8 @@ def get_knn_matrix(unlabeled_ds: dict[str, torch.Tensor],
             raise AssertionError(f"size of distances matrix {distances.size()} != ({unlabeled_ds_size}, {labeled_ds_size})")
 
     # Get nearest neighbors
+    if verbose: 
+        print("Finding nearest neighbors...")
     distances, nearest_indices = torch.topk(distances, k=k, dim=1, largest=False)
     if debug:
         if nearest_indices.size() != (unlabeled_ds_size, k):
@@ -80,8 +84,11 @@ def get_knn_matrix(unlabeled_ds: dict[str, torch.Tensor],
 
     # Remove unneeded columns
     del labeled_ds["vector_encoding"]
-    del unlabeled_ds["vector_encoding"]
+    if labeled_ds != unlabeled_ds:
+        del unlabeled_ds["vector_encoding"]
 
+    if verbose: 
+        print("Done generating kNN matrix")
     return nearest_indices, distances
 
 
