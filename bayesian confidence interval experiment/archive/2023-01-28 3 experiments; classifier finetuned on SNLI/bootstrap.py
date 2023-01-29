@@ -333,7 +333,7 @@ def ci_experiment_repeated(snli_labeled: bool, seed: int = 0,
 if __name__ == '__main__':
     print("Loading model...")
     bert_classifier = BertClassifier(n_labels=3)
-    bert_classifier.load_state_dict(torch.load("finetuned_mnli.pt"))  # Path to fine-tuned BERT classifier
+    bert_classifier.load_state_dict(torch.load("finetuned_snli.pt"))
     bert_classifier.eval()
 
     print("Downloading datasets...")
