@@ -94,7 +94,7 @@ def get_confidence_interval(labeled_ds: dict[torch.Tensor],
     # Sample 
     accuracy_distribution = torch.distributions.binomial.Binomial(total_count=n_bootstrap_samples,
         probs=torch.full(size=(n_bootstrap_iterations,), fill_value=p_correct, device=device))
-    sampled_accuracies = accuracy_distribution.sample() / n_bootstrap_iterations
+    sampled_accuracies = accuracy_distribution.sample() / n_bootstrap_samples
     if debug:
         if sampled_accuracies.size() != (n_bootstrap_iterations,):
             raise AssertionError(f"sampled_accuracies.size(): {sampled_accuracies.size()}")
@@ -222,7 +222,7 @@ def ci_experiment_repeated(snli_labeled: bool, seed: int = 0,
 if __name__ == '__main__':
     print("Loading model...")
     bert_classifier = BertClassifier(n_labels=3)
-    bert_classifier.load_state_dict(torch.load("finetuned_mnli.pt"))  # Path to fine-tuned BERT classifier
+    bert_classifier.load_state_dict(torch.load("finetuned_snli.pt"))  # Path to fine-tuned BERT classifier
     bert_classifier.eval()
 
     print("Downloading datasets...")

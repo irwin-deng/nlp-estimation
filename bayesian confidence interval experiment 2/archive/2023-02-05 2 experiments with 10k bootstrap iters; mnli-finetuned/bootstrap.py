@@ -94,7 +94,7 @@ def get_confidence_interval(labeled_ds: dict[torch.Tensor],
     # Sample 
     accuracy_distribution = torch.distributions.binomial.Binomial(total_count=n_bootstrap_samples,
         probs=torch.full(size=(n_bootstrap_iterations,), fill_value=p_correct, device=device))
-    sampled_accuracies = accuracy_distribution.sample() / n_bootstrap_iterations
+    sampled_accuracies = accuracy_distribution.sample() / n_bootstrap_samples
     if debug:
         if sampled_accuracies.size() != (n_bootstrap_iterations,):
             raise AssertionError(f"sampled_accuracies.size(): {sampled_accuracies.size()}")
@@ -187,7 +187,7 @@ def ci_experiment_repeated(snli_labeled: bool, seed: int = 0,
 
         # Weighted sample
         weighted_ci = get_confidence_interval(labeled_ds=labeled_ds,
-            labeled_ds_indices=labeled_indices, n_bootstrap_samples=len(unlabeled_indices),
+            labeled_ds_indices=labeled_indices, n_bootstrap_samples=len(labeled_indices),
             weighted=True, weights=weights_subset, debug=debug)
         weighted_cis.append(weighted_ci)
         if weighted_ci[0] <= accuracy and accuracy <= weighted_ci[1]:
@@ -195,7 +195,7 @@ def ci_experiment_repeated(snli_labeled: bool, seed: int = 0,
 
         # Unweighted sample
         unweighted_ci = get_confidence_interval(labeled_ds=labeled_ds,
-            labeled_ds_indices=labeled_indices, n_bootstrap_samples=len(unlabeled_indices),
+            labeled_ds_indices=labeled_indices, n_bootstrap_samples=len(labeled_indices),
             weighted=False, debug=debug)
         unweighted_cis.append(unweighted_ci)
         if unweighted_ci[0] <= accuracy and accuracy <= unweighted_ci[1]:

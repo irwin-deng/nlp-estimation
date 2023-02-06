@@ -94,7 +94,7 @@ def get_confidence_interval(labeled_ds: dict[torch.Tensor],
     # Sample 
     accuracy_distribution = torch.distributions.binomial.Binomial(total_count=n_bootstrap_samples,
         probs=torch.full(size=(n_bootstrap_iterations,), fill_value=p_correct, device=device))
-    sampled_accuracies = accuracy_distribution.sample() / n_bootstrap_iterations
+    sampled_accuracies = accuracy_distribution.sample() / n_bootstrap_samples
     if debug:
         if sampled_accuracies.size() != (n_bootstrap_iterations,):
             raise AssertionError(f"sampled_accuracies.size(): {sampled_accuracies.size()}")

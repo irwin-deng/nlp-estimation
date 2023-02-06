@@ -13,51 +13,6 @@ bert_classifier: torch.nn.Module
 
 mnli_test: dict[str, torch.Tensor]
 snli_test: dict[str, torch.Tensor]
-weighted_freqs: torch.Tensor
-unweighted_freqs: torch.Tensor
-
-def weighted_sampler(weights: torch.Tensor, batch_size: int, debug: bool = False) -> torch.Tensor:
-    """
-    Generate samples for a batch of unlabeled samples by performing weighted
-    sampling from the provided weights vector
-
-    :param weights: The entry at index i contains the weight of sampling the ith
-        example from the labeled dataset
-    :returns: a tensor consisting of the sampled indices from the labeled dataset
-    """
-
-    # For each sample in the unlabeled batch, get a sample from the labeled batch
-    sampled_labeled_indices = torch.multinomial(weights, num_samples=batch_size, replacement=True).squeeze()
-    if debug:
-        if sampled_labeled_indices.size() != (batch_size,):
-            raise AssertionError(f"sampled_labeled_indices size: {sampled_labeled_indices.size()}"
-                f"batch_size: {batch_size}")
-        weighted_freqs[sampled_labeled_indices] += 1
-    return sampled_labeled_indices
-
-
-
-def unweighted_sampler(labeled_indices: torch.Tensor, batch_size: int, debug: bool = False) -> torch.Tensor:
-    """
-    Generate a batch of size batch_size consisting of randomly sampled
-    observations (with replacement) from the labeled dataset
-
-    :param labeled_indices: a tensor consisting of the subset of the labeled
-        dataset's indices that can be sampled from
-    :param batch_size: the number of samples to get for this batch
-    :returns: a tensor consisting of the sampled indices from the labeled dataset
-    """
-
-    sampled_labeled_indices = labeled_indices[
-        torch.randint(len(labeled_indices), size=(batch_size,), device=device)]
-    if debug:
-        if not torch.isin(sampled_labeled_indices, labeled_indices).all():
-            raise AssertionError()
-        if sampled_labeled_indices.size() != (batch_size,):
-            raise AssertionError(f"sampled_labeled_indices size: {sampled_labeled_indices.size()}")
-        unweighted_freqs[sampled_labeled_indices] += 1
-    return sampled_labeled_indices
-
 
 
 def compute_correctly_classified(classifier: torch.nn.Module, dataset: dict[torch.Tensor], debug: bool = False):
@@ -111,35 +66,40 @@ def get_accuracy(dataset: dict[str, torch.Tensor], dataset_indices: torch.Tensor
 
 
 def get_confidence_interval(labeled_ds: dict[torch.Tensor],
-        labeled_ds_indices: torch.Tensor, unlabeled_ds_indices: torch.Tensor,
-        weighted: bool = False, weights: torch.Tensor = None,
-        verbose: bool = False, debug: bool = False
+        labeled_ds_indices: torch.Tensor, n_bootstrap_samples: int,
+        weighted: bool = False, weights: torch.Tensor = None, debug: bool = False
     ) -> tuple[float, float]:
     """
-    Compute a confidence interval by sampling with repetition from the labeled
-    dataset. Returns a tuple consisting of the lower and upper bounds of the
-    confidence interval
+    Compute a 95% confidence interval by sampling with repetition from the labeled
+    dataset. If weighted=True, sample from weights tensor. If weighted=False, sample
+    with equal probability from labeled_ds_indices. Returns a tuple consisting
+    of the lower and upper bounds of the confidence interval
     """
     if weighted:
         assert weights is not None
 
     n_bootstrap_iterations = 10000
-    sampled_accuracies = []  # Sampled accuracies from each bootstrap iteration
-
-    tqdm_ci = tqdm(range(1, n_bootstrap_iterations + 1), disable = not verbose)
-    for iteration in tqdm_ci:
-        if verbose:
-            tqdm_ci.set_description(f"Iteration {iteration} / {n_bootstrap_iterations}")
-        if weighted:
-            labeled_samples = weighted_sampler(weights=weights,
-                batch_size=len(labeled_ds_indices), debug=debug)
-        else:
-            labeled_samples = unweighted_sampler(labeled_indices=labeled_ds_indices,
-                batch_size=len(labeled_ds_indices), debug=debug)
-        sampled_accuracies.append(get_accuracy(dataset=labeled_ds,
-            dataset_indices=labeled_samples))
-
-    sampled_accuracies = torch.tensor(sampled_accuracies, device=device)
+    
+    # Convert to probability of correct
+    if weighted:
+        probabilities = weights / weights.sum()
+        p_correct = torch.where(labeled_ds["is_correct"], probabilities, 0).sum()
+    else:
+        p_correct = torch.sum(labeled_ds["is_correct"][labeled_ds_indices], dtype=torch.float64) / len(labeled_ds_indices)
+    if debug:
+        if len(p_correct.size()) != 0:
+            raise AssertionError(f"p_correct.size(): {p_correct.size()}")
+        if torch.logical_or(p_correct<0, p_correct>1):
+            raise AssertionError(f"Invalid probability: {p_correct}")
+    # Sample 
+    accuracy_distribution = torch.distributions.binomial.Binomial(total_count=n_bootstrap_samples,
+        probs=torch.full(size=(n_bootstrap_iterations,), fill_value=p_correct, device=device))
+    sampled_accuracies = accuracy_distribution.sample() / n_bootstrap_samples
+    if debug:
+        if sampled_accuracies.size() != (n_bootstrap_iterations,):
+            raise AssertionError(f"sampled_accuracies.size(): {sampled_accuracies.size()}")
+        if torch.logical_or(torch.any(sampled_accuracies<0), torch.any(sampled_accuracies>1)):
+            raise AssertionError(f"Invalid accuracies: {sampled_accuracies}")
     confidence_interval = (torch.quantile(sampled_accuracies, 0.025).item(),
         torch.quantile(sampled_accuracies, 0.975).item())
     return confidence_interval
@@ -170,12 +130,6 @@ def ci_experiment_repeated(snli_labeled: bool, seed: int = 0,
         unlabeled_ds = snli_test
         labeled_ds = mnli_test
 
-    if debug:
-        global weighted_freqs
-        weighted_freqs = torch.zeros((len(labeled_ds["label"]),), device=device)
-        global unweighted_freqs
-        unweighted_freqs = torch.zeros((len(labeled_ds["label"]),), device=device)
-
     # Precompute whether the classifier can correctly classify each element of the dataset(s)
     if verbose:
         print("\nPrecomputing predicted values on datasets...")
@@ -185,7 +139,7 @@ def ci_experiment_repeated(snli_labeled: bool, seed: int = 0,
         compute_correctly_classified(bert_classifier, mnli_test, debug=debug)
     bert_classifier.cpu()
 
-    n_iterations = 1000 if not debug else 10  # Number of different confidence intervals to generate
+    n_iterations = 10000 if not debug else 10  # Number of different confidence intervals to generate
     unlabeled_size = 100  # Number of examples from SNLI to use as unlabeled dataset
     snli_indices = torch.arange(len(snli_test["label"]), device=device)
 
@@ -225,7 +179,7 @@ def ci_experiment_repeated(snli_labeled: bool, seed: int = 0,
                 raise AssertionError(f"weights_subset size: {weights_subset.size()})")
         # Normalize sum of weights in each row to 1
         weights_subset = weights_subset / weights_subset.sum(dim=1, keepdim=True)
-        # Combine into a single weight vector
+        # Combine into a single weight vector, where the entry at index i is the probability of sampling the ith labeled example
         weights_subset = torch.sum(weights_subset, dim=0)
         if debug:
             if weights_subset.size() != (len(labeled_ds["label"]),):
@@ -233,18 +187,16 @@ def ci_experiment_repeated(snli_labeled: bool, seed: int = 0,
 
         # Weighted sample
         weighted_ci = get_confidence_interval(labeled_ds=labeled_ds,
-            labeled_ds_indices=labeled_indices,
-            unlabeled_ds_indices=unlabeled_indices, weighted=True,
-            weights=weights_subset, verbose=False, debug=debug)
+            labeled_ds_indices=labeled_indices, n_bootstrap_samples=len(labeled_indices),
+            weighted=True, weights=weights_subset, debug=debug)
         weighted_cis.append(weighted_ci)
         if weighted_ci[0] <= accuracy and accuracy <= weighted_ci[1]:
             weighted_in_ci += 1
 
         # Unweighted sample
         unweighted_ci = get_confidence_interval(labeled_ds=labeled_ds,
-            labeled_ds_indices=labeled_indices,
-            unlabeled_ds_indices=unlabeled_indices, weighted=False,
-            verbose=False, debug=debug)
+            labeled_ds_indices=labeled_indices, n_bootstrap_samples=len(labeled_indices),
+            weighted=False, debug=debug)
         unweighted_cis.append(unweighted_ci)
         if unweighted_ci[0] <= accuracy and accuracy <= unweighted_ci[1]:
             unweighted_in_ci += 1
@@ -254,10 +206,6 @@ def ci_experiment_repeated(snli_labeled: bool, seed: int = 0,
     
     print(f"\nWeighted proportion: {weighted_in_ci / n_iterations}")
     print(f"Unweighted proportion: {unweighted_in_ci / n_iterations}")
-    
-    if debug:
-        print(f"Weighted index freqs, std: {weighted_freqs.std()}, min: {weighted_freqs.min()}, max: {weighted_freqs.max()}")
-        print(f"Unweighted index freqs, std: {unweighted_freqs.std()}, min: {unweighted_freqs.min()}, max: {unweighted_freqs.max()}")
 
     # Write data to CSV
     if results_save_path:
@@ -294,6 +242,6 @@ if __name__ == '__main__':
         snli_test = convert_dataset_to_tensor_dict(snli_test)
 
         ci_experiment_repeated(snli_labeled=True, results_save_path="results_snli-snli.csv",
-            seed=0, verbose=True, debug=True)
+            seed=0, verbose=True, debug=False)
         ci_experiment_repeated(snli_labeled=False, results_save_path="results_mnli-snli.csv",
-            seed=0, verbose=True, debug=True)
+            seed=0, verbose=True, debug=False)
