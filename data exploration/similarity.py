@@ -3,6 +3,7 @@ from tqdm import tqdm
 import transformers.modeling_outputs
 from transformers import BertModel, BertForSequenceClassification
 from typing import Union
+from sklearn.feature_extraction.text import TfidfVectorizer
 from common import bert_base, device
 
 
@@ -79,6 +80,19 @@ def bert_average_token_batched(bert_model: Union[BertModel,BertForSequenceClassi
             attention_mask=attention_mask[batch_indices])
             for batch_indices in tqdm(torch.split(
                 torch.arange(n_examples, device=device), batch_size))])
+
+
+def tf_idf_vectorizer(premise: list[str], hypothesis: list[str], corpus: list[str],
+        debug: bool = False) -> torch.Tensor:
+    """
+    Get the tf-idf vector for each premise+hypothesis pair
+    """
+    assert len(premise) == len(hypothesis)
+    vectorizer = TfidfVectorizer(stop_words="english")
+    vectorizer.fit(corpus)
+    premise_vectors = torch.tensor(vectorizer.transform(premise).toarray(), device=device)  # type: ignore
+    hypothesis_vectors = torch.tensor(vectorizer.transform(hypothesis).toarray(), device=device)  # type: ignore
+    return torch.add(premise_vectors, hypothesis_vectors)
 
 
 def get_distance_matrix(unlabeled_ds: dict[str, torch.Tensor],

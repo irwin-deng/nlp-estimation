@@ -43,7 +43,7 @@ def get_bert_encoding(batch: dict[str, torch.Tensor]) -> transformers.BatchEncod
     return encoding
 
 
-def preprocess_nli_dataset(dataset: datasets.arrow_dataset.Dataset,
+def preprocess_nli_dataset(dataset: datasets.arrow_dataset.Dataset, delete_text: bool = True,
                            batch_size: int = 256) -> datasets.arrow_dataset.Dataset:
     """
     Preprocess datasets by removing invalid data points and encoding inputs with BERT encoder
@@ -57,7 +57,10 @@ def preprocess_nli_dataset(dataset: datasets.arrow_dataset.Dataset,
 
     # Remove unused columns
     cols_to_remove = dataset.column_names
-    for column_to_keep in ["input_ids", "token_type_ids", "attention_mask", "label"]:
+    columns_to_keep = ["input_ids", "token_type_ids", "attention_mask", "label"]
+    if not delete_text:
+        columns_to_keep.extend(["premise", "hypothesis"])
+    for column_to_keep in columns_to_keep:
         cols_to_remove.remove(column_to_keep)
     dataset = dataset.remove_columns(cols_to_remove)
 
