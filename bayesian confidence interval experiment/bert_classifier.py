@@ -1,30 +1,35 @@
 import torch
+import torch.utils.data
 import math
 import numpy as np
 import torch
 import datasets
-from datasets import load_dataset
 import transformers
+import transformers.modeling_outputs
 from transformers import BertForSequenceClassification, get_linear_schedule_with_warmup
+from datasets.load import load_dataset
 from tqdm import tqdm
+from common import device
 from utils import get_batch_eval_metrics
 
 
 class BertClassifier(torch.nn.Module):
+    bert: BertForSequenceClassification
+
     def __init__(self, n_labels: int = 3):
         super(BertClassifier, self).__init__()
         self.bert = BertForSequenceClassification.from_pretrained(
-            "bert-base-uncased", num_labels=n_labels)
+            "bert-base-uncased", num_labels=n_labels)  # type: ignore
         self.num_labels = n_labels
     
-    def forward(self, input_ids, attention_mask):
+    def forward(self, input_ids: torch.Tensor, attention_mask: torch.Tensor):
         return self.bert.forward(input_ids=input_ids,
             attention_mask=attention_mask, return_dict=False)[0]
 
 bert_tokenizer = transformers.AutoTokenizer.from_pretrained('bert-base-uncased')
 
 
-def get_bert_encoding(batch: dict[str, torch.tensor]) -> transformers.BatchEncoding:
+def get_bert_encoding(batch: dict[str, torch.Tensor]) -> transformers.BatchEncoding:
     encoding = bert_tokenizer.batch_encode_plus(
         [f"[CLS] {premise} [SEP] {hypothesis} [SEP]"
             for premise, hypothesis in zip(batch["premise"], batch["hypothesis"])],
@@ -87,7 +92,7 @@ def finetune_nli(dataset_name: str, split: str = "train", seed: int = 0,
 
     optimizer = torch.optim.AdamW(bert_classifier.parameters(), lr=2e-5)
     loss_func = torch.nn.CrossEntropyLoss()
-    train_loader = torch.utils.data.DataLoader(dataset, batch_size=batch_size, shuffle=True)
+    train_loader = torch.utils.data.DataLoader(dataset, batch_size=batch_size, shuffle=True)  # type: ignore
 
     n_train_samples = len(dataset)
     n_batches = math.ceil(n_train_samples / batch_size)
