@@ -22,9 +22,10 @@ from scipy.special import softmax
 from sklearn.metrics import f1_score
 
 from transformers.file_utils import PYTORCH_TRANSFORMERS_CACHE
-from transformers.modeling_bert import BertForSequenceClassification
-from transformers.tokenization_bert import BertTokenizer
+from transformers import BertForSequenceClassification, BertTokenizer
 from transformers.optimization import AdamW
+
+from typing import Optional
 
 logging.basicConfig(format = '%(asctime)s - %(levelname)s - %(name)s -   %(message)s',
                     datefmt = '%m/%d/%Y %H:%M:%S',
@@ -50,20 +51,23 @@ def get_hypothesis(label_file, simple_hypo=False):
 class InputExample(object):
     """A single training/test example for simple sequence classification."""
 
-    def __init__(self, guid, text_a, text_b=None, label=None):
+    def __init__(self, guid, text_a, text_b, text_b_true, label=None):
         """Constructs a InputExample.
         Args:
             guid: Unique id for the example.
             text_a: string. The untokenized text of the first sequence. For single
             sequence tasks, only this sequence must be specified.
-            text_b: (Optional) string. The untokenized text of the second sequence.
-            Only must be specified for sequence pair tasks.
+            text_b: string. The untokenized text of the second sequence.
+            Must be specified for sequence pair tasks.
+            text_b_true: string. The true untokenized text of the second sequence.
+            Must be specified for sequence pair tasks.
             label: (Optional) string. The label of the example. This should be
             specified for train and dev examples, but not for test examples.
         """
         self.guid = guid
-        self.text_a = text_a
-        self.text_b = text_b
+        self.text_a: str = text_a
+        self.text_b: str = text_b
+        self.text_b_true: str = text_b_true
         self.label = label
 
 
@@ -80,34 +84,38 @@ class InputFeatures(object):
 
 class DataProcessor(object):
 
-    def get_examples_Yahoo_test(self, filename, type2hypothesis, labeling='single'):
+    def get_examples_Yahoo_test(self, filename, type2hypothesis, labeling='single',
+                                included_types: Optional[set[int]] = None, limit: Optional[int] = None) -> tuple[list[InputExample], list[int]]:
         readfile = codecs.open(filename, 'r', 'utf-8')
-        line_co=0
+        line_co = 0
         exam_co = 0
-        examples=[]
+        examples: list[InputExample] = []
 
-        gold_label_list = []
+        assert labeling == "single"
+
+        gold_label_list: list[int] = []
         for row in readfile:
             line=row.strip().split('\t')
             if len(line)==2: # label_id, text
-                if labeling=='single':
-                    type_index =  int(line[0])
-                    gold_label_list.append(type_index)
-                elif labeling=='multi':
-                    type_index =  [int(x) for x in line[0].split()]
-                    gold_label_list.append(type_index)
+                # Read one example per line, setting text_a to the article and text_b to be a random topic
+                type_index = int(line[0])
+                if included_types is not None and type_index not in included_types:
+                    continue
+                gold_label_list.append(type_index)
+                guid = "test-"+str(exam_co)
+                text_a = line[1]
+                if included_types is None:
+                    hypothesis_type_index = random.randint(0, len(type2hypothesis)-1)
                 else:
-                    raise ValueError('Invalid labeling type')
-                for i in range(len(type2hypothesis)):
-                    hypo_list = type2hypothesis.get(i)
-                    for hypo in hypo_list:
-                        guid = "test-"+str(exam_co)
-                        text_a = line[1]
-                        text_b = hypo
-                        label = 'not_entailment' # fake label for test
-                        examples.append(
-                            InputExample(guid=guid, text_a=text_a, text_b=text_b, label=label))
-                        exam_co+=1
+                    hypothesis_type_index = random.choice(tuple(included_types))
+                text_b = type2hypothesis.get(hypothesis_type_index)[0]
+                text_b_true = type2hypothesis.get(type_index)[0]
+                label = "entailment" if text_b == text_b_true else "not_entailment"
+                examples.append(
+                    InputExample(guid=guid, text_a=text_a, text_b=text_b, text_b_true=text_b_true, label=label))
+                exam_co+=1
+                if limit is not None and exam_co >= limit:
+                    break
                 line_co+=1
 
         readfile.close()

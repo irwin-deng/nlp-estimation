@@ -1,34 +1,34 @@
+import sys
+import random
 import numpy as np
 import torch
-import datasets
 import csv
-from datasets.load import load_dataset
 from similarity import get_distance_matrix
 from tqdm import tqdm
 from typing import Optional
-from bert_classifier import BertClassifier, preprocess_nli_dataset
-from utils import shuffle_tensor
+from transformers import BertForSequenceClassification, BertTokenizer
+from utils import TensorDictDataset, shuffle_tensor
 from common import device
-
-bert_classifier: BertClassifier
-
-mnli_test: dict[str, torch.Tensor]
-snli_test: dict[str, torch.Tensor]
+from eval_TE import (DataProcessor, convert_examples_to_features, get_hypothesis)
 
 
-def compute_correctly_classified(classifier: torch.nn.Module, dataset: dict[str, torch.Tensor], debug: bool = False):
+def compute_correctly_classified(classifier: BertForSequenceClassification, dataset: TensorDictDataset, debug: bool = False):
     """
     Add a new boolean field 'is_correct' to the dataset indicating whether the classifier
     predicted the label correctly
     """
-    dataset_size = len(dataset["label"])
-    batch_size = 128
-    dataset["is_correct"] = torch.empty_like(dataset["label"], dtype=torch.bool, device=device)
+    dataset["is_correct"] = torch.empty(len(dataset), dtype=torch.bool, device=device)
+    features_to_move = ["labels", "input_ids", "input_mask", "segment_ids"]
+    for feature in features_to_move:
+        dataset[feature] = dataset[feature].to(device)
 
-    for batch_indices in tqdm(torch.split(torch.arange(dataset_size, device=device), batch_size)):
-        target = dataset["label"][batch_indices].to(device)
-        output = classifier.forward(dataset["input_ids"][batch_indices].to(device),
-            dataset["attention_mask"][batch_indices].to(device))
+    batch_size = 64
+    for batch_indices in tqdm(torch.split(torch.arange(len(dataset), device=device), batch_size)):
+        target = dataset["labels"][batch_indices]
+        output = classifier.forward(input_ids=dataset["input_ids"][batch_indices],
+            attention_mask=dataset["input_mask"][batch_indices],
+            token_type_ids=dataset["segment_ids"][batch_indices])[0]
+        assert isinstance(output, torch.Tensor)
         predictions = output.argmax(dim=1, keepdim=True).squeeze()
         is_correct = torch.eq(target, predictions)
         if debug:
@@ -42,9 +42,11 @@ def compute_correctly_classified(classifier: torch.nn.Module, dataset: dict[str,
                 raise AssertionError(f"is_correct size: {is_correct.size()}, ")
         dataset["is_correct"][batch_indices] = is_correct
 
+    for feature in features_to_move:
+        dataset[feature] = dataset[feature].cpu()
 
 
-def get_accuracy(dataset: dict[str, torch.Tensor], dataset_indices: Optional[torch.Tensor] = None
+def get_accuracy(dataset: TensorDictDataset, dataset_indices: Optional[torch.Tensor] = None
     ) -> torch.Tensor:
     """
     Compute the accuracy of the classifier on the provided dataset
@@ -56,7 +58,7 @@ def get_accuracy(dataset: dict[str, torch.Tensor], dataset_indices: Optional[tor
     """
 
     if dataset_indices is None:
-        dataset_indices = torch.arange(len(dataset["label"]), device=device)
+        dataset_indices = torch.arange(len(dataset), device=device)
 
     if "is_correct" not in dataset.keys():
         raise AssertionError("Must call compute_correctly_classified() first to "
@@ -66,7 +68,7 @@ def get_accuracy(dataset: dict[str, torch.Tensor], dataset_indices: Optional[tor
 
 
 
-def get_confidence_interval(labeled_ds: dict[str, torch.Tensor],
+def get_confidence_interval(labeled_ds: TensorDictDataset,
         labeled_ds_indices: torch.Tensor, n_bootstrap_samples: int,
         weighted: bool = False, weights: Optional[torch.Tensor] = None, debug: bool = False
     ) -> tuple[float, float]:
@@ -106,62 +108,68 @@ def get_confidence_interval(labeled_ds: dict[str, torch.Tensor],
 
 
 
-def ci_experiment_repeated(snli_labeled: bool, bootstrap_size: str,
-        overlapping_labeled_unlabeled: bool = False, seed: int = 0, results_save_path: Optional[str] = None,
+def ci_experiment_repeated(classifier: BertForSequenceClassification,
+        labeled_ds: TensorDictDataset, unlabeled_ds: TensorDictDataset,
+        unlabeled_prop = 0.01, overlapping_labeled_unlabeled: bool = False,
+        seed: int = 0, results_save_path: Optional[str] = None,
         verbose: bool = False, debug: bool = False):
     """
     Compute the proportion of confidence intervals that contain the true value
     of the classifier's accuracy on the unlabeled dataset, comparing weighted
     vs unweighted sampling.
 
-    :param snli_labeled: Whether to use examples from the SNLI dataset as
-        the labeled dataset. If True, we will use the examples from SNLI not
-        selected to be the unlabeled dataset. If False, we will use the entire
-        MNLI dataset as the labeled dataset.
+    :param labeled_ds: The dataset to draw labeled samples from
+    :param unlabeled_ds: The dataset to draw unlabeled samples from. If this is
+        the same object as labeled_ds, then this dataset will be partitioned
+        into a labeled and an unlabeled set each bootstrap iteration.
+    :param unlabeled_prop: The proportion of unlabeled_ds to use each bootstrap
+        iteration
     :param overlapping_labeled_unlabeled: whether to also include the unlabeled
         examples in the labeled dataset (this just serves as a sanity check)
     """
     if overlapping_labeled_unlabeled:
-        assert snli_labeled
+        assert unlabeled_ds is labeled_ds
     np.random.seed(seed)
     torch.manual_seed(seed)
 
-    if snli_labeled:
-        print("\nRunning experiment with 100 unlabeled and rest labeled samples from SNLI")
-        unlabeled_ds = snli_test
-        labeled_ds = snli_test
+    n_unlabeled = int(unlabeled_prop * len(unlabeled_ds))  # Number of samples from unlabeled_ds to use as the unlabeled dataset each iteration
+    if unlabeled_ds is labeled_ds:
+        print(f"\nRunning experiment partitioning {unlabeled_ds.name} dataset into unlabeled and labeled")
+        n_labeled = len(unlabeled_ds) - n_unlabeled
     else:
-        print("\nRunning experiment with 100 unlabeled from SNLI, labeled from MNLI")
-        unlabeled_ds = snli_test
-        labeled_ds = mnli_test
-    print(f"with len({bootstrap_size} dataset) samples per bootstrap iteration")
+        print(f"\nRunning experiment with {labeled_ds.name} as labeled and {unlabeled_ds.name} as unlabeled")
+        n_labeled = len(labeled_ds)
+    if overlapping_labeled_unlabeled:
+        print("Unlabeled data is a subset of labeled data")
+        n_labeled = n_unlabeled * 5
+    else:
+        print("Unlabeled data and labeled data are disjoint")
+    if verbose:
+        print(f"labeled subset size: {n_labeled}/{len(labeled_ds)}, unlabeled subset size: {n_unlabeled}/{len(unlabeled_ds)}")
 
     # Precompute whether the classifier can correctly classify each element of the dataset(s)
     if verbose:
         print("\nPrecomputing predicted values on datasets...")
-    bert_classifier.to(device)
-    compute_correctly_classified(bert_classifier, snli_test, debug=debug)
-    if not snli_labeled:
-        compute_correctly_classified(bert_classifier, mnli_test, debug=debug)
-    bert_classifier.cpu()
+    classifier.to(device)
+    compute_correctly_classified(classifier, labeled_ds, debug=debug)
+    if unlabeled_ds is not labeled_ds:
+        compute_correctly_classified(classifier, unlabeled_ds, debug=debug)
+    classifier.cpu()
 
     n_iterations = 10000 if not debug else 10  # Number of different confidence intervals to generate
-    unlabeled_size = 100  # Number of examples from SNLI to use as unlabeled dataset
-    n_bootstrap_samples: int  # Number of samples per bootstrap iteration
-    if bootstrap_size == "unlabeled":
-        n_bootstrap_samples = unlabeled_size
-    elif bootstrap_size == "labeled":
-        n_bootstrap_samples = len(labeled_ds["label"]) - (unlabeled_size if unlabeled_ds is labeled_ds else 0)
-    else:
-        raise AssertionError
-    snli_indices = torch.arange(len(snli_test["label"]), device=device)
+    n_bootstrap_samples = n_labeled
 
     # Calculate weights matrix
     distances = get_distance_matrix(unlabeled_ds=unlabeled_ds,
-        labeled_ds=labeled_ds, encoding_type="cls", bert_model=bert_classifier.bert,
-        verbose=verbose, debug=debug)
+        labeled_ds=labeled_ds, encoding_type="sbert", verbose=verbose, debug=debug)
+    if verbose:
+        print("pairwise distances matrix: ")
+        print(distances)
     epsilon = 0.1  # to make sure that no weight is infinite
-    weights = torch.exp((distances+epsilon) ** -1)
+    weights = torch.exp((distances.to(torch.float64)+epsilon) ** -1)
+    if verbose:
+        print("full weights matrix: ")
+        print(weights)
 
     accuracies, weighted_cis, unweighted_cis = [], [], []  # Accuracies; confidence intervals produced by weighted, unweighte sampling
     weighted_in_ci, unweighted_in_ci = 0, 0  # The number of trials in which weighted and unweighted sampling produced a CI containing the true accuracy
@@ -170,20 +178,21 @@ def ci_experiment_repeated(snli_labeled: bool, bootstrap_size: str,
 
     if verbose:
         print("Generating confidence intervals...")
+    all_unlabeled_indices = torch.arange(len(unlabeled_ds), device=device)
     tqdm_iterator = tqdm(range(1, n_iterations + 1), disable = not verbose)
     for iteration in tqdm_iterator:
         tqdm_iterator.set_description(f"Iteration {iteration} / {n_iterations}")
 
-        # Get indices of unlabeled samples from SNLI
-        snli_indices = shuffle_tensor(snli_indices)
-        unlabeled_indices = snli_indices[torch.arange(unlabeled_size, device=device)]
-        # Get indices of labeled samples
-        if overlapping_labeled_unlabeled:
-            labeled_indices = snli_indices[torch.arange(unlabeled_size*5)]
-        elif snli_labeled:
-            labeled_indices = snli_indices[torch.arange(unlabeled_size, len(snli_indices), device=device)]
+        # Get indices of unlabeled subset
+        all_unlabeled_indices = shuffle_tensor(all_unlabeled_indices)
+        unlabeled_indices = all_unlabeled_indices[torch.arange(n_unlabeled, device=device)]
+        # Get indices of labeled subset
+        if labeled_ds is unlabeled_ds and overlapping_labeled_unlabeled:
+            labeled_indices = all_unlabeled_indices[torch.arange(n_labeled, device=device)]
+        elif labeled_ds is unlabeled_ds and not overlapping_labeled_unlabeled:
+            labeled_indices = all_unlabeled_indices[torch.arange(n_unlabeled, len(unlabeled_ds), device=device)]
         else:
-            labeled_indices = torch.arange(len(mnli_test["label"]), device=device)
+            labeled_indices = torch.arange(len(labeled_ds), device=device)
 
         # Get true accuracy
         accuracy = get_accuracy(dataset=unlabeled_ds, dataset_indices=unlabeled_indices)
@@ -191,20 +200,26 @@ def ci_experiment_repeated(snli_labeled: bool, bootstrap_size: str,
 
         # Calculate weights given the subset of the labeled dataset
         weights_subset = weights[unlabeled_indices].clone().detach()
-        if snli_labeled and overlapping_labeled_unlabeled:
+        if labeled_ds is unlabeled_ds and overlapping_labeled_unlabeled:
             weights_subset[:, ~labeled_indices] = 0
-        if snli_labeled and not overlapping_labeled_unlabeled:
+        if labeled_ds is unlabeled_ds and not overlapping_labeled_unlabeled:
             weights_subset[:, unlabeled_indices] = 0
         if debug:
-            if weights_subset.size() != (len(unlabeled_indices), len(labeled_ds["label"])):
+            if weights_subset.size() != (len(unlabeled_indices), len(labeled_ds)):
                 raise AssertionError(f"weights_subset size: {weights_subset.size()})")
         # Normalize sum of weights in each row to 1
         weights_subset = weights_subset / weights_subset.sum(dim=1, keepdim=True)
         # Combine into a single weight vector, where the entry at index i is the probability of sampling the ith labeled example
         weights_subset = torch.sum(weights_subset, dim=0)
+        weights_subset = weights_subset / weights_subset.sum()  # Normalize sum to 1
         if debug:
-            if weights_subset.size() != (len(labeled_ds["label"]),):
+            if weights_subset.size() != (len(labeled_ds),):
                 raise AssertionError(f"weights_subset size: {weights_subset.size()})")
+        if verbose and iteration <= 2:
+            print(f"iteration {iteration} weights (sorted descending): ")
+            print(weights_subset.sort(descending=True)[0])
+            print(f"iteration {iteration} weights (ordered by labeled index): ")
+            print(weights_subset)
 
         # Weighted sample
         weighted_ci = get_confidence_interval(labeled_ds=labeled_ds,
@@ -255,44 +270,73 @@ def ci_experiment_repeated(snli_labeled: bool, bootstrap_size: str,
 
 
 if __name__ == '__main__':
+    debug = False
+    random.seed(0)
+    np.random.seed(0)
+    torch.manual_seed(0)
+    torch.set_printoptions(threshold=10)
+
     print("Loading model...")
-    bert_classifier = BertClassifier(n_labels=3)
-    bert_classifier.eval()
+    processor = DataProcessor()
+    label_list = processor.get_labels()  # [0, 1]
+    num_labels = len(label_list)
+
+    tokenizer = BertTokenizer.from_pretrained('bert-base-uncased')
+    classifier: BertForSequenceClassification = BertForSequenceClassification.from_pretrained("./model/TE_WikiCate", num_labels=num_labels)  # type: ignore
+    classifier.cpu()
+    classifier.eval()
 
     print("Downloading datasets...")
-    mnli_test_ds: datasets.arrow_dataset.Dataset = load_dataset("multi_nli", split="validation_matched").with_format("pt")  # type: ignore
-    snli_test_ds: datasets.arrow_dataset.Dataset = load_dataset("snli", split="test").with_format("pt")  # type: ignore
+    labeling = "single"
+    max_seq_length = 128
+    batch_size = 32
+    def get_dataset(name: str, data_path: str, label_path: str, included_types: Optional[set[int]] = None) -> TensorDictDataset:
+        labeling = "single"
+        type2hypothesis = get_hypothesis(label_path, True)
+        examples, _ = processor.get_examples_Yahoo_test(data_path, type2hypothesis, labeling,
+                                                                 included_types=included_types, limit=200 if debug else None)
+        features = convert_examples_to_features(examples, ["entailment", "not_entailment"], max_seq_length, tokenizer)
+        dataset = TensorDictDataset(name, {"input_ids": torch.tensor([f.input_ids for f in features], dtype=torch.long),
+                                    "input_mask": torch.tensor([f.input_mask for f in features], dtype=torch.long),
+                                    "segment_ids": torch.tensor([f.segment_ids for f in features], dtype=torch.long),
+                                    "premises": [example.text_a for example in examples],
+                                    "hypotheses": [example.text_b for example in examples],
+                                    "correct_hypotheses": [example.text_b_true for example in examples],
+                                    "labels": torch.tensor([f.label_id for f in features], dtype=torch.long)})
+        return dataset
+    yahoo_dataset = get_dataset("yahoo", "./data/yahoo/test.txt", "./data/yahoo/label_names.txt", included_types=set((4,5,6,9)))
+    print(f"Length of yahoo dataset: {len(yahoo_dataset)}")
+    if debug:
+        print(yahoo_dataset["hypotheses"][0:9])
+        print(yahoo_dataset["labels"][0:9])
+        for feature, values in yahoo_dataset.items():
+            try:
+                print(f"'{feature}' size: {sys.getsizeof(values.storage())} bytes")
+            except:
+                pass
+    agnews_dataset = get_dataset("agnews", "./data/agnews/test.txt", "./data/agnews/label_names.txt")
+    print(f"Length of agnews dataset: {len(agnews_dataset)}")
+    if debug:
+        print(agnews_dataset["hypotheses"][0:9])
+        print(agnews_dataset["labels"][0:9])
+        for feature, values in agnews_dataset.items():
+            try:
+                print(f"'{feature}' size: {sys.getsizeof(values.storage())} bytes")
+            except:
+                pass
 
     with torch.no_grad():
-        # Preprocess datasets by removing invalid data points and encoding inputs with BERT encoder
-        print("Preprocessing datasets...")
-        mnli_test_ds = preprocess_nli_dataset(mnli_test_ds)
-        snli_test_ds = preprocess_nli_dataset(snli_test_ds)
+        ci_experiment_repeated(classifier=classifier, labeled_ds=yahoo_dataset,
+            unlabeled_ds=yahoo_dataset, overlapping_labeled_unlabeled=True,
+            results_save_path="results_overlapping-yahoo-yahoo.csv",
+            seed=0, verbose=True, debug=debug)
 
-        def convert_dataset_to_tensor_dict(dataset: datasets.arrow_dataset.Dataset):
-            dataset = dataset.with_format("torch", device=device)
-            return {column:dataset[column] for column in dataset.format["columns"]}
-        mnli_test = convert_dataset_to_tensor_dict(mnli_test_ds)
-        snli_test = convert_dataset_to_tensor_dict(snli_test_ds)
+        ci_experiment_repeated(classifier=classifier, labeled_ds=yahoo_dataset,
+            unlabeled_ds=yahoo_dataset,
+            results_save_path="results_yahoo-yahoo.csv",
+            seed=0, verbose=True, debug=debug)
 
-        bert_classifier.load_state_dict(torch.load("finetuned_mnli.pt"))
-        ci_experiment_repeated(snli_labeled=True, bootstrap_size="unlabeled",
-            overlapping_labeled_unlabeled=True,
-            results_save_path="results_overlapping-labeled-unlabeled_size-unlabeled_mnli-finetuned.csv",
-            seed=0, verbose=True, debug=False)
-
-        ci_experiment_repeated(snli_labeled=True, bootstrap_size="labeled",
-            overlapping_labeled_unlabeled=True,
-            results_save_path="results_overlapping-labeled-unlabeled_size-labeled_mnli-finetuned.csv",
-            seed=0, verbose=True, debug=False)
-
-        bert_classifier.load_state_dict(torch.load("finetuned_snli.pt"))
-        ci_experiment_repeated(snli_labeled=True, bootstrap_size="unlabeled",
-            overlapping_labeled_unlabeled=True,
-            results_save_path="results_overlapping-labeled-unlabeled_size-unlabeled_snli-finetuned.csv",
-            seed=0, verbose=True, debug=False)
-
-        ci_experiment_repeated(snli_labeled=True, bootstrap_size="labeled",
-            overlapping_labeled_unlabeled=True,
-            results_save_path="results_overlapping-labeled-unlabeled_size-labeled_snli-finetuned.csv",
-            seed=0, verbose=True, debug=False)
+        ci_experiment_repeated(classifier=classifier, labeled_ds=yahoo_dataset,
+            unlabeled_ds=agnews_dataset,
+            results_save_path="results_yahoo-agnews.csv",
+            seed=0, verbose=True, debug=debug)

@@ -1,119 +1,19 @@
 import torch
-from tqdm import tqdm
-import transformers.modeling_outputs
-from transformers import BertModel, BertForSequenceClassification
-from typing import Union
+import matplotlib.pyplot as plt
+from sklearn.decomposition import PCA
+from numpy.typing import ArrayLike
 from common import device
+from utils import TensorDictDataset
 from sklearn.feature_extraction.text import TfidfVectorizer
+from sentence_transformers import SentenceTransformer
+
+similarity_model = SentenceTransformer("bert-base-uncased")
+similarity_model.cpu()
+similarity_model.eval()
 
 
-def bert_cls_vectors_batched(bert_model: Union[BertModel,BertForSequenceClassification],
-        input_ids: torch.Tensor, attention_mask: torch.Tensor, batch_size: int,
-        debug: bool = False) -> torch.Tensor:
-    """
-    Get the [CLS] embeddings from the specified bert_model, splitting into batches of size batch_size
-
-    input_ids and attention_mask should be tensors of a common length n in dimension 0.
-    The output is a tensor of shape (n, 786)
-    """
-    n_examples = input_ids.size(dim=0)
-
-    def get_cls_vectors(bert_model: Union[BertModel,BertForSequenceClassification],
-            input_ids: torch.Tensor, attention_mask: torch.Tensor) -> torch.Tensor:
-        """
-        Get the [CLS] embeddings from the specified bert_model as a single batch
-        """
-        if debug:
-            if input_ids.size(dim=0) != attention_mask.size(dim=0):
-                raise AssertionError(f"input_ids dim 0: {input_ids.size(dim=0)}, "
-                    f"attention_mask dim 0: {attention_mask.size(dim=0)}")
-        batch_size = input_ids.size(dim=0)
-
-        output: transformers.modeling_outputs.SequenceClassifierOutput = bert_model.forward(
-            input_ids.to(device), attention_mask.to(device), output_hidden_states=True)  # type: ignore
-        hidden_states = output.hidden_states
-        assert hidden_states is not None
-        last_hidden_state = hidden_states[-1] # [batch_size, tokens, dimension]
-        if debug:
-            if last_hidden_state.size(dim=0) != batch_size:
-                raise AssertionError(f"last_hidden_state dim 0 size: {last_hidden_state.size(dim=0)}")
-        cls_vectors = last_hidden_state[:, 0, :]
-        return torch.reshape(cls_vectors, (batch_size, -1))
-
-    return torch.cat([
-        get_cls_vectors(bert_model, input_ids=input_ids[batch_indices],
-            attention_mask=attention_mask[batch_indices])
-            for batch_indices in tqdm(torch.split(
-                torch.arange(n_examples, device=device), batch_size))])
-
-
-def bert_average_token_batched(bert_model: Union[BertModel,BertForSequenceClassification],
-        input_ids: torch.Tensor, attention_mask: torch.Tensor, batch_size: int,
-        debug: bool = False) -> torch.Tensor:
-    """
-    Get the average embedding of each token from the output of the specified bert_model,
-    splitting into batches of size batch_size
-
-    input_ids and attention_mask should be tensors of a common length n in dimension 0.
-    The output is a tensor of shape (n, 786)
-    """
-    n_examples = input_ids.size(dim=0)
-
-    def get_average_token(bert_model: Union[BertModel,BertForSequenceClassification],
-            input_ids: torch.Tensor, attention_mask: torch.Tensor) -> torch.Tensor:
-        """
-        Get the average embedding of each token from the output of the specified bert_model
-        as a single batch
-        """
-        if debug:
-            if input_ids.size(dim=0) != attention_mask.size(dim=0):
-                raise AssertionError(f"input_ids dim 0: {input_ids.size(dim=0)}, "
-                    f"attention_mask dim 0: {attention_mask.size(dim=0)}")
-        batch_size = input_ids.size(dim=0)
-
-        output: transformers.modeling_outputs.SequenceClassifierOutput = bert_model.forward(
-            input_ids.to(device), attention_mask.to(device), output_hidden_states=True)  # type: ignore
-        hidden_states = output.hidden_states
-        assert hidden_states is not None
-        last_hidden_state = hidden_states[-1] # [batch_size, tokens, dimension]
-        if debug:
-            if last_hidden_state.size(dim=0) != batch_size:
-                raise AssertionError(f"last_hidden_state dim 0 size: {last_hidden_state.size(dim=0)}")
-        average_embeddings = torch.stack([last_hidden_state[i,torch.nonzero(attention_mask[i]),:].squeeze().mean(dim=0)
-            for i in range(batch_size)])
-        if debug:
-            if average_embeddings.size(dim=0) != batch_size:
-                raise AssertionError(f"average_embeddings dim 0: {average_embeddings.size(dim=0)}, "
-                    f"n_examples: {n_examples}")
-            if average_embeddings.size(dim=1) != 768:
-                raise AssertionError(f"average_embeddings dim 1: {average_embeddings.size(dim=1)}")
-        return torch.reshape(average_embeddings, (batch_size, -1))
-
-    return torch.cat([
-        get_average_token(bert_model, input_ids=input_ids[batch_indices],
-            attention_mask=attention_mask[batch_indices])
-            for batch_indices in tqdm(torch.split(
-                torch.arange(n_examples, device=device), batch_size))])
-
-
-def tf_idf_vectorizer(premise: list[str], hypothesis: list[str], corpus: list[str]) -> torch.Tensor:
-    """
-    Get the tf-idf vector for each premise+hypothesis pair
-
-    premise and hypothesis should be lists of strings of some common length n.
-    The output is a tensor of shape (n, m), where m is the number of unique words in the corpus
-    """
-    assert len(premise) == len(hypothesis)
-    vectorizer = TfidfVectorizer(stop_words="english")
-    vectorizer.fit(corpus)
-    premise_vectors = torch.tensor(vectorizer.transform(premise).toarray(), device=device)  # type: ignore
-    hypothesis_vectors = torch.tensor(vectorizer.transform(hypothesis).toarray(), device=device)  # type: ignore
-    return torch.add(premise_vectors, hypothesis_vectors)
-
-
-def get_distance_matrix(unlabeled_ds: dict[str, torch.Tensor],
-                        labeled_ds: dict[str, torch.Tensor], encoding_type: str,
-                        bert_model: Union[BertModel,BertForSequenceClassification,None] = None,
+def get_distance_matrix(unlabeled_ds: TensorDictDataset,
+                        labeled_ds: TensorDictDataset, encoding_type: str,
                         verbose: bool = False, debug: bool = False
                        ) -> torch.Tensor:
     """
@@ -129,52 +29,93 @@ def get_distance_matrix(unlabeled_ds: dict[str, torch.Tensor],
     if verbose:
         print("Generating kNN matrix...")
 
-    batch_size = 64
-    unlabeled_ds_size = len(unlabeled_ds["label"])
-    labeled_ds_size = len(labeled_ds["label"])
+    unlabeled_ds_size = len(unlabeled_ds)
+    labeled_ds_size = len(labeled_ds)
 
     # Encode unlabeled and labeled data
-    if bert_model is not None:
-        bert_model.to(device)
+    similarity_model.to(device)
     if verbose:
-        print("Calculating [CLS] vectors of unlabeled dataset...")
-    if encoding_type == "cls":
-        assert bert_model is not None
-        unlabeled_ds["vector_encoding"] = bert_cls_vectors_batched(bert_model=bert_model,
-            input_ids=unlabeled_ds["input_ids"], attention_mask=unlabeled_ds["attention_mask"],
-            batch_size=batch_size, debug=debug)
-    elif encoding_type == "avg":
-        assert bert_model is not None
-        unlabeled_ds["vector_encoding"] = bert_average_token_batched(bert_model=bert_model,
-            input_ids=unlabeled_ds["input_ids"], attention_mask=unlabeled_ds["attention_mask"],
-            batch_size=batch_size, debug=debug)
+        print("Calculating vector encodings of unlabeled dataset...")
+    if encoding_type == "sbert":
+        assert isinstance(unlabeled_ds["premises"], list)
+        vector_encodings = similarity_model.encode(unlabeled_ds["premises"],
+            show_progress_bar=verbose, convert_to_tensor=True, device=device)
+        assert isinstance(vector_encodings, torch.Tensor)
+        unlabeled_ds["vector_encodings"] = vector_encodings.to(torch.float32)
     else:
         raise AssertionError
 
     if labeled_ds is not unlabeled_ds:
         if verbose:
-            print("Calculating [CLS] vectors of labeled dataset...")
-        if encoding_type == "cls":
-            assert bert_model is not None
-            labeled_ds["vector_encoding"] = bert_cls_vectors_batched(bert_model=bert_model,
-                input_ids=labeled_ds["input_ids"], attention_mask=labeled_ds["attention_mask"],
-                batch_size=batch_size, debug=debug)
-        elif encoding_type == "avg":
-            assert bert_model is not None
-            labeled_ds["vector_encoding"] = bert_average_token_batched(bert_model=bert_model,
-                input_ids=labeled_ds["input_ids"], attention_mask=labeled_ds["attention_mask"],
-                batch_size=batch_size, debug=debug)
+            print("Calculating vector encodings of labeled dataset...")
+        if encoding_type == "sbert":
+            assert isinstance(labeled_ds["premises"], list)
+            vector_encodings = similarity_model.encode(labeled_ds["premises"],
+                show_progress_bar=verbose, convert_to_tensor=True, device=device)
+            assert isinstance(vector_encodings, torch.Tensor)
+            labeled_ds["vector_encodings"] = vector_encodings.to(torch.float32)
         else:
             raise AssertionError
-    bert_model.cpu()
+    similarity_model.cpu()
 
     # Get Euclidean distance between each sample in the labeled dataset and each sample in the unlabeled dataset
     if verbose: 
         print("Calculating distances...")
-    distances = torch.cdist(unlabeled_ds["vector_encoding"].unsqueeze(dim=0),
-        labeled_ds["vector_encoding"].unsqueeze(dim=0), p=2).squeeze(dim=0)
+    distances = torch.cdist(unlabeled_ds["vector_encodings"].unsqueeze(dim=0),
+        labeled_ds["vector_encodings"].unsqueeze(dim=0), p=2).squeeze(dim=0)
     if debug:
         if distances.size() != (unlabeled_ds_size, labeled_ds_size):
             raise AssertionError(f"size of distances matrix {distances.size()} != ({unlabeled_ds_size}, {labeled_ds_size})")
 
+    if verbose:
+        # Plot PCA of the two datasets
+        if unlabeled_ds is not labeled_ds:
+            plot_pca(torch.cat((unlabeled_ds["vector_encodings"], labeled_ds["vector_encodings"]), dim=0),
+            torch.cat((torch.zeros_like(unlabeled_ds["labels"]), torch.ones_like(labeled_ds["labels"])), dim=0),
+            title="Distribution of encodings of the two datasets",
+            label_names=[unlabeled_ds.name, labeled_ds.name])
+        # Plot PCA of labels
+        datasets_to_plot = [unlabeled_ds]
+        if labeled_ds is not unlabeled_ds:
+            datasets_to_plot.append(unlabeled_ds)
+        for dataset in datasets_to_plot:
+            unique_labels = list(set(dataset["correct_hypotheses"]))
+            label_map = {label: indx for (indx, label) in enumerate(unique_labels)}
+            plot_pca(dataset["vector_encodings"], [label_map[label] for label in dataset["correct_hypotheses"]],
+            title=f"Distribution of labels in dataset {dataset.name}",
+            label_names=unique_labels, cmap="tab10")
+        # Plot PCA of correct/incorrect labels
+        assert "is_correct" in labeled_ds
+        if labeled_ds is unlabeled_ds:
+            plot_pca(labeled_ds["vector_encodings"], labeled_ds["is_correct"],
+            title=f"Distribution of correct or incorrect predictions in dataset {labeled_ds.name}",
+            label_names=["incorrect", "correct"], cmap="Set1")
+        else:
+            assert "is_correct" in unlabeled_ds
+            plot_pca(torch.cat((unlabeled_ds["vector_encodings"], labeled_ds["vector_encodings"]), dim=0),
+                torch.cat((unlabeled_ds["is_correct"], 2+labeled_ds["is_correct"]), dim=0),
+                title=f"Distribution of correct or incorrect predictions in datasets {labeled_ds.name} and {unlabeled_ds.name}",
+                label_names=[f"{unlabeled_ds.name} incorrect", f"{unlabeled_ds.name} correct",
+                            f"{labeled_ds.name} incorrect", f"{labeled_ds.name} correct"], cmap="tab20")
+
+    unlabeled_ds["vector_encodings"] = unlabeled_ds["vector_encodings"].cpu()
+    labeled_ds["vector_encodings"] = labeled_ds["vector_encodings"].cpu()
     return distances
+
+# Visualize dataset using PCA
+def plot_pca(vector_encodings: ArrayLike, labels: ArrayLike, title: str, label_names: list[str], cmap: str = "coolwarm"):
+    # Compute first 2 principle components
+    pca = PCA(n_components=2)
+    if isinstance(vector_encodings, torch.Tensor):
+        vector_encodings = vector_encodings.cpu().numpy()
+    pca_transformed = pca.fit_transform(vector_encodings)
+    if isinstance(labels, torch.Tensor):
+        labels = labels.cpu().numpy()
+
+    # Plot
+    plt.clf()
+    plot = plt.scatter(pca_transformed[:,0], pca_transformed[:,1], c=labels, s=0.5, cmap=cmap)
+    plt.legend(handles=plot.legend_elements()[0], labels=label_names)
+    plt.title(title)
+    plt.show(block=False)
+    plt.savefig(f"{title}.png")
