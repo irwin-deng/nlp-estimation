@@ -5,6 +5,97 @@ import os
 import h5py
 import os.path
 import numpy as np
+import xml.etree.ElementTree as ET
+from sklearn.feature_extraction.text import TfidfVectorizer
+
+class Amazon(torch.utils.data.Dataset):
+    url = ""
+    filename = ""
+    file_md5 = ""
+    tf_idf_transform: TfidfVectorizer = None
+
+    category_dirs = {
+        "apparel": "apparel",
+        "books": "books",
+        "dvd": "dvd",
+        "electronics": "electronics",
+        "health": "health_&_personal_care",
+        "kitchen": "kitchen_&_housewares",
+        "music": "music",
+        "sports": "sports_&_outdoors",
+        "toys": "toys_&_games",
+        "video": "video"}
+
+    def __init__(self, root, category, split="train", transform=None, target_transform=None):
+        self.root = root
+        self.category = category
+        self.split = split
+        self.transform = transform
+        self.target_transform = target_transform
+
+        if self.category not in self.category_dirs:
+            raise ValueError('Wrong category entered!')
+        if self.split not in ["train", "test", "all"]:
+            raise ValueError('Wrong split entered! Please use split="train" '
+                             'or split="extra" or split="test" '
+                             'or split="train_and_extra" ')
+
+        def clean_invalid_chars(input: str) -> str:
+            to_replace = {"&": "&amp;", "\x1a": "", "<P>": ""}
+            cleaned_input = input
+            for old, new in to_replace.items():
+                cleaned_input = cleaned_input.replace(old, new)
+            return cleaned_input
+
+        # reading(loading) mat file as array
+        positive_reviews = []
+        with open(os.path.join(root, self.category_dirs[category], "positive.review"), encoding='cp1252') as file:
+            parsed_dataset = ET.fromstring("<root>" + clean_invalid_chars(file.read()) + "</root>")
+            for item in parsed_dataset:
+                positive_reviews.append(item.find("title").text + item.find("review_text").text)
+            file.close()
+        negative_reviews = []
+        with open(os.path.join(root, self.category_dirs[category], "negative.review"), encoding='cp1252') as file:
+            parsed_dataset = ET.fromstring("<root>" + clean_invalid_chars(file.read()) + "</root>")
+            for item in parsed_dataset:
+                negative_reviews.append(item.find("title").text + item.find("review_text").text)
+            file.close()
+
+        # get train/test split
+        if split == "train":
+            positive_reviews = positive_reviews[:int(len(positive_reviews) * 0.75)]
+            negative_reviews = negative_reviews[:int(len(negative_reviews) * 0.75)]
+        elif split == "test":
+            positive_reviews = positive_reviews[int(len(positive_reviews) * 0.75):]
+            negative_reviews = negative_reviews[int(len(negative_reviews) * 0.75):]
+        elif split == "all":
+            pass
+        else:
+            raise NotImplementedError()
+
+        # do tf-idf transform
+        if self.tf_idf_transform is None:
+            corpus = []
+            for category_dir in self.category_dirs.values():
+                for file_name in ["positive.review", "negative.review"]:
+                    with open(os.path.join(root, category_dir, file_name), encoding='cp1252') as file:
+                        ds_split = ET.fromstring("<root>" + clean_invalid_chars(file.read()) + "</root>")
+                        for item in ds_split:
+                            corpus.append(item.find("title").text + item.find("review_text").text)
+                        file.close()
+            self.tf_idf_transform = TfidfVectorizer(max_features=5000).fit(corpus)
+
+        self.raw_text = np.array(positive_reviews + negative_reviews)
+        self.data = np.array(self.tf_idf_transform.transform(positive_reviews + negative_reviews).todense())
+        self.targets = np.concatenate((np.ones(len(positive_reviews)), np.zeros(len(negative_reviews))))
+
+    def __getitem__(self, index):
+        features, target = self.data[index], self.targets[index]
+        return features.astype(np.float32), target.astype(np.int64)
+
+    def __len__(self):
+        return len(self.data)
+
 
 class SVHN(torch.utils.data.Dataset):
     url = ""
@@ -89,7 +180,7 @@ class SVHN(torch.utils.data.Dataset):
         if self.target_transform is not None:
             target = self.target_transform(target)
 
-        return img, target.astype(np.long)
+        return img, target.astype(np.int64)
 
     def __len__(self):
         if self.split == "test":

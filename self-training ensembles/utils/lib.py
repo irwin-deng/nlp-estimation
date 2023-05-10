@@ -44,23 +44,28 @@ def get_error_detection_results(record, target_test_labels, target_test_pred_lab
 def test(model, dataloader):
     model.eval()
     n_correct, n_total = 0, 0
-    for img, label in iter(dataloader):
+    def read_optional_weight(img, label, weight=None):
+        if weight == None:
+            weight = torch.ones_like(label)
+        return img, label, weight
+    for item in iter(dataloader):
+        img, label, weight = read_optional_weight(*item)
         batch_size = len(label)
         img, label = img.cuda(), label.cuda()
 
         class_output, _, _ = model(img)
         pred = class_output.data.max(1, keepdim=True)[1]
-        n_correct += pred.eq(label.data.view_as(pred)).cpu().sum()
-        n_total += batch_size
+        n_correct += torch.dot(pred.eq(label.data.view_as(pred)).double().flatten(), weight.double().cuda())
+        n_total += torch.sum(weight.cuda())
 
     acc = n_correct.double() / n_total
-    return acc.numpy()
+    return acc.cpu().numpy()
 
 def get_data(dataloader):
     X = []
     y = []
     for batch_x, batch_y in dataloader:
-        X.extend(batch_x.expand(batch_x.data.shape[0], 3, 28, 28).numpy())
+        X.extend(batch_x.numpy())
         y.extend(batch_y.numpy())
     return np.array(X), np.array(y)
 
@@ -96,7 +101,7 @@ def get_model_pred(model, dataloader):
     labels = []
     for batch_x, batch_y in dataloader:
         batch_x = batch_x.cuda()
-        batch_y = batch_y.cuda()
+        batch_y = batch_y
         _, batch_outputs, _ = model(batch_x)
         batch_pred_labels = np.argmax(batch_outputs.detach().cpu().numpy(), axis=1)
         pred_labels.extend(batch_pred_labels)
@@ -178,7 +183,7 @@ def ensemble_self_training(model2, dataloader_source, pseudo_weight, optimizer):
             data_source_iter = iter(dataloader_source)
             s_img, s_label, s_domain_label, s_weight = sample_batch(data_source_iter, True, True)
         
-        s_class_output, _, _ = model2(s_img)
+        s_class_output, _, _ = model2(s_img, alpha=1)
         loss_s_label = loss_class(s_class_output, s_label)
      
         p_s_weight = s_weight + pseudo_weight * (s_weight == 0).type(torch.float32)
@@ -230,9 +235,9 @@ def dann_ensemble_self_training(model2, dataloader_source, dataloader_target, ps
 def sample_batch(data_iter, source, return_weight=False):
     try:
         if return_weight:
-            img, label, weight = data_iter.next()
+            img, label, weight = next(data_iter)
         else:
-            img, label = data_iter.next()
+            img, label = next(data_iter)
     except StopIteration:
         if return_weight:
             return [], [], [], []

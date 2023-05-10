@@ -10,9 +10,9 @@ from torchvision import datasets
 from utils.data_util import *
 from utils.lib import *
 from models.model import Model
-from models.dann_model import DANNModel
+from models.dann_model import ImageDANNModel, TextDANNModel
 
-def test(model, dataloader):
+def test(model: nn.Module, dataloader: DataLoader):
     model.eval()
     n_correct, n_total = 0, 0
     for img, label in iter(dataloader):
@@ -27,12 +27,13 @@ def test(model, dataloader):
     acc = n_correct.double() / n_total
     return acc
 
-def train(model, dataloader_source):
+def train(model: nn.Module, dataloader_source: DataLoader, alpha: float,
+          optimizer: torch.optim.Optimizer, loss_class: torch.nn.modules.loss._Loss) -> None:
     model.train()
     for s_img, s_label in iter(dataloader_source):
         s_img, s_label = s_img.cuda(), s_label.cuda()
 
-        class_output, _, _ = model(s_img)
+        class_output, _, _ = model(s_img, alpha)
         loss_s_label = loss_class(class_output, s_label)
 
         loss = loss_s_label
@@ -40,9 +41,9 @@ def train(model, dataloader_source):
         loss.backward()
         optimizer.step()
 
-if __name__ == '__main__':
+def main():
     parser = argparse.ArgumentParser(description='Pretrain model')
-    parser.add_argument('--source-dataset', default='mnist', choices=['mnist', 'mnist-m', 'svhn', 'usps'], type=str, help='source dataset')
+    parser.add_argument('--source-dataset', default='mnist', type=str, help='source dataset')
     parser.add_argument('--batch-size', default=128, type=int, help='Number of images in each mini-batch')
     parser.add_argument('--nepoch', default=20, type=int, help='Number of epochs for training')
     parser.add_argument('--model-type', default="typical_dnn", choices=['typical_dnn', "dann_arch"], type=str, help='given model type')
@@ -56,7 +57,7 @@ if __name__ == '__main__':
     set_seed(args.seed)
     
     batch_size, nepoch = args.batch_size, args.nepoch
-    source_dataset = args.source_dataset
+    source_dataset: str = args.source_dataset
     model_type = args.model_type
     
     if not os.path.exists(args.base_dir):
@@ -92,24 +93,39 @@ if __name__ == '__main__':
         normalizer = transforms.Normalize(mean=(0.2542, 0.2542, 0.2542), std=(0.3356, 0.3356, 0.3356))
         dataset_source = USPS(split="train", transform=img_transform)
         dataloader_source = DataLoader(dataset=dataset_source, batch_size=batch_size, shuffle=True, num_workers=2)
-        dataset_source_test =  USPS(split="test", transform=img_transform)
-        dataloader_source_test = DataLoader(dataset=dataset_source_test, batch_size=batch_size, shuffle= False, num_workers=2)
-    
+    elif source_dataset.startswith("amazon/"):
+        dataset_source = Amazon("dataset/amazon/", split='train', category=source_dataset.removeprefix("amazon/"))
+        dataloader_source = DataLoader(dataset=dataset_source, batch_size=batch_size, shuffle=True, num_workers=2)
+        dataset_source_test = Amazon("dataset/amazon/", split='test', category=source_dataset.removeprefix("amazon/"))
+        dataloader_source_test = DataLoader(dataset=dataset_source_test, batch_size=batch_size, shuffle=True, num_workers=2)
+    else:
+        raise NotImplementedError()
+
     # Model Setup
     if model_type == "typical_dnn":
         model = Model(normalizer=normalizer).cuda()
     elif model_type == "dann_arch":
-        model = DANNModel(normalizer=normalizer).cuda()
+        if source_dataset.startswith("amazon/"):
+            model = TextDANNModel().cuda()
+        else:
+            model = ImageDANNModel(normalizer=normalizer).cuda()
+    else:
+        raise NotImplementedError()
     
     optimizer = optim.Adam(model.parameters(), lr=1e-3)
     loss_class = torch.nn.NLLLoss().cuda()
 
     if not os.path.exists(save_dir):
-        os.mkdir(save_dir)
+        os.makedirs(save_dir)
 
     for epoch in range(nepoch):
-        train(model, dataloader_source)
+        alpha = (2 / (1 + np.exp(-10 * (epoch / (nepoch - 1)))) - 1) * 0.1 if nepoch > 1 else 0.1
+        train(model, dataloader_source, alpha, optimizer, loss_class)
         acc_s = test(model, dataloader_source_test)
         print('EPOCH {} Acc: {} {:.2f}%'.format(epoch, source_dataset, acc_s*100))
 
     torch.save(model, os.path.join(save_dir, 'checkpoint.pth'))
+
+
+if __name__ == '__main__':
+    main()

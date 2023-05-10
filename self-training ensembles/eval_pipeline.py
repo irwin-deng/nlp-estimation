@@ -9,11 +9,14 @@ from torchvision import datasets
 from torchvision import transforms
 import torch.nn.functional as F
 
+os.environ["TOKENIZERS_PARALLELISM"] = "true"
+
 from utils.data_util import *
 from utils.lib import *
 from models.model import Model
-from models.dann_model import DANNModel
+from models.dann_model import ImageDANNModel, TextDANNModel
 from utils.trust_score import TrustScore
+from utils.similarity import get_distance_matrix
 
     
 def get_dataloaders(source_dataset, target_dataset, batch_size, test_time):
@@ -48,6 +51,13 @@ def get_dataloaders(source_dataset, target_dataset, batch_size, test_time):
         dataloader_source = DataLoader(dataset=dataset_source, batch_size=batch_size, shuffle=True, num_workers=2)
         dataset_source_test =  USPS(split="test", transform=img_transform)
         dataloader_source_test = DataLoader(dataset=dataset_source_test, batch_size=batch_size, shuffle= False, num_workers=2)
+    elif source_dataset.startswith("amazon/"):
+        dataset_source = Amazon("dataset/amazon/", split="train", category=source_dataset.removeprefix("amazon/"))
+        dataloader_source = DataLoader(dataset=dataset_source, batch_size=batch_size, shuffle=True, num_workers=2)
+        dataset_source_test = Amazon("dataset/amazon/", split="test", category=source_dataset.removeprefix("amazon/"))
+        dataloader_source_test = DataLoader(dataset=dataset_source_test, batch_size=batch_size, shuffle=True, num_workers=2)
+    else:
+        raise NotImplementedError()
 
     if target_dataset == "mnist":
         dataset_target = datasets.MNIST(root='dataset/mnist', train=True, transform=img_transform, download=True)
@@ -71,6 +81,12 @@ def get_dataloaders(source_dataset, target_dataset, batch_size, test_time):
         dataloader_target = DataLoader(dataset=dataset_target, batch_size=batch_size, shuffle=True, num_workers=2)
         dataset_target_test =  USPS(split="test", transform=img_transform)
         dataloader_target_test = DataLoader(dataset=dataset_target_test, batch_size=batch_size, shuffle= False, num_workers=2)
+    elif target_dataset.startswith("amazon/"):
+        dataloader_target = None
+        dataset_target_test = Amazon("dataset/amazon/", split="all", category=target_dataset.removeprefix("amazon/"))
+        dataloader_target_test = DataLoader(dataset=dataset_target_test, batch_size=batch_size, shuffle=True, num_workers=2)
+    else:
+        raise NotImplementedError()
     
     if test_time:
         dataloader_target = DataLoader(dataset=dataset_target_test, batch_size=batch_size, shuffle=True, num_workers=2)
@@ -127,14 +143,17 @@ def eval_proxy_risk_method(model, source_dataset, target_dataset, args):
     return acc_t, estimated_acc, estimated_error, precision, recall, f1
 
 
-def eval_our_ri_method(model, source_dataset, target_dataset, args):
+def eval_our_ri_method(model, source_dataset, target_dataset, weight_by, args):
 
     batch_size = 128
     test_time = True
     nround = 5
     nepoch = 5
+    if source_dataset.startswith("amazon/"):
+        nepoch = 20
     gamma = 0.1
     num_classes = 10
+        
 
     dataloader_source, dataloader_source_test, dataloader_target, dataloader_target_test = get_dataloaders(source_dataset, target_dataset, batch_size, test_time)
 
@@ -142,7 +161,16 @@ def eval_our_ri_method(model, source_dataset, target_dataset, args):
     for i in range(nepoch):
         check_model_path = "./checkpoints/ensemble_dann_arch_source_models/{:d}/{}/checkpoint.pth".format(i, source_dataset)
         check_model_paths.append(check_model_path)
-            
+
+    if weight_by == "similar":
+        distance_matrix = get_distance_matrix(dataloader_target_test.dataset.raw_text,
+                                              dataloader_source_test.dataset.raw_text,
+                                              "cls")
+        nn_weights = torch.softmax(distance_matrix ** -1, dim=1)
+        labeled_test_weights = nn_weights.sum(dim=0).cpu().numpy()
+        source_test_images, source_test_labels = get_data(dataloader_source_test)
+        weighted_labeled_ds = CustomDatasetWithWeight(source_test_images, source_test_labels, labeled_test_weights)
+
     pseudo_weight = gamma
     if target_dataset == "usps":
         pseudo_weight = pseudo_weight * 10
@@ -164,7 +192,13 @@ def eval_our_ri_method(model, source_dataset, target_dataset, args):
             optimizer = optim.Adam(model2.parameters(), lr=1e-3)
             ensemble_self_training(model2, dataloader_source_pseudo, pseudo_weight, optimizer)
             target_test_pred_labels_2, _ = get_model_pred(model2, dataloader_target_test)
-            pred_record[np.arange(target_test_pred_labels_2.shape[0]), target_test_pred_labels_2] += 1     
+            if weight_by is None:
+                model_weight = 1
+            elif weight_by == "acc":
+                model_weight = test(model2, dataloader_source_test) ** 10
+            elif weight_by == "similar":
+                model_weight = test(model2, DataLoader(weighted_labeled_ds, batch_size=batch_size)) ** 10
+            pred_record[np.arange(target_test_pred_labels_2.shape[0]), target_test_pred_labels_2] += model_weight
         
         target_test_pseudo_labels = np.argmax(pred_record, axis=1)
         disagree_record = (target_test_pseudo_labels!=target_test_pred_labels)
@@ -181,6 +215,7 @@ def eval_our_ri_method(model, source_dataset, target_dataset, args):
     precision, recall, f1 = get_error_detection_results(disagree_record, target_test_labels, target_test_pred_labels)
     
     return t_test_acc, estimated_acc, estimated_error, precision, recall, f1
+
 
 def eval_our_rm_method(model, source_dataset, target_dataset, args):
 
@@ -317,10 +352,11 @@ def eval_trust_score_method(model, source_dataset, target_dataset, args):
     precision, recall, f1 = get_error_detection_results(error_record, target_test_labels, target_test_pred_labels)
     return precision, recall, f1
 
-if __name__ == '__main__':
+def main():
     parser = argparse.ArgumentParser(description='Evaluate unsupervised accuracy estimation and error detection tasks')
     parser.add_argument('--model-type', default="typical_dnn", choices=['typical_dnn', "dann_arch"], type=str, help='given model type')
-    parser.add_argument('--method', default="conf_avg", choices=['conf_avg', 'ensemble_conf_avg', 'conf', 'trust_score', 'proxy_risk', 'our_ri', 'our_rm'], type=str, help='method')
+    parser.add_argument('--method', default="conf_avg", type=str, help='method')
+    parser.add_argument('--datasets', nargs='+', required=True)
     parser.add_argument('--seed', type=int, default=0)
 
     # args parse
@@ -331,8 +367,8 @@ if __name__ == '__main__':
     
     all_error = []
     all_f1 = []
-    for source_dataset in ["mnist", "mnist-m", "svhn", "usps"]:
-        for target_dataset in ["mnist", "mnist-m", "svhn", "usps"]:
+    for source_dataset in args.datasets:
+        for target_dataset in args.datasets:
             if source_dataset == target_dataset:
                 continue
 
@@ -345,7 +381,11 @@ if __name__ == '__main__':
             model = torch.load(model_path).cuda()
             
             if args.method == 'our_ri':
-                t_test_acc, estimated_acc, estimated_error, precision, recall, f1 = eval_our_ri_method(model, source_dataset, target_dataset, args)
+                t_test_acc, estimated_acc, estimated_error, precision, recall, f1 = eval_our_ri_method(model, source_dataset, target_dataset, None, args)
+            elif args.method == 'acc_weighted_ri':
+                t_test_acc, estimated_acc, estimated_error, precision, recall, f1 = eval_our_ri_method(model, source_dataset, target_dataset, "acc", args)
+            elif args.method == 'sim_weighted_ri':
+                t_test_acc, estimated_acc, estimated_error, precision, recall, f1 = eval_our_ri_method(model, source_dataset, target_dataset, "similar", args)
             elif args.method == 'our_rm':
                 t_test_acc, estimated_acc, estimated_error, precision, recall, f1 = eval_our_rm_method(model, source_dataset, target_dataset, args)
             elif args.method == 'proxy_risk':
@@ -362,7 +402,7 @@ if __name__ == '__main__':
                 assert False, "Not supported method: {}".format(args.method)
             
             print("Source Dataset: {}, Target Dataset: {}".format(source_dataset, target_dataset))
-            if args.method in ['our_ri', 'our_rm', 'proxy_risk']:
+            if args.method in ['our_ri', 'acc_weighted_ri', 'sim_weighted_ri', 'our_rm', 'proxy_risk']:
                 print("Target Accuracy: {:.4f}, Estimated Accuracy: {:.4f}, Estimation Error: {:.4f}, Precision: {:.4f}, Recall: {:.4f}, F1 Score: {:.4f}".format(t_test_acc, estimated_acc, estimated_error, precision, recall, f1))
                 all_error.append(estimated_error)
                 all_f1.append(f1)
@@ -375,7 +415,7 @@ if __name__ == '__main__':
 
     print("Summary Results")
     print("Method: {}".format(args.method))
-    if args.method in ['our_ri', 'our_rm', 'proxy_risk']:
+    if args.method in ['our_ri', 'acc_weighted_ri', 'sim_weighted_ri', 'our_rm', 'proxy_risk']:
         print("Accuracy Estimation")
         avg_error = np.mean(all_error)
         print("Average Estimation Error: {:.4f}".format(avg_error))
@@ -390,3 +430,7 @@ if __name__ == '__main__':
         print("Error Detection")
         avg_f1 = np.mean(all_f1)
         print("Average F1 Score: {:.4f}".format(avg_f1))
+
+
+if __name__ == "__main__":
+    main()
