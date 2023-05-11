@@ -1,0 +1,555 @@
+['amazon/apparel', 'amazon/books', 'amazon/dvd', 'amazon/electronics', 'amazon/health', 'amazon/kitchen', 'amazon/music', 'amazon/sports', 'amazon/toys', 'amazon/video']
+Source Dataset: amazon/apparel, Target Dataset: amazon/books
+Target Accuracy: 0.6645, Estimated Accuracy: 0.6845, Estimation Error: 0.0200, Precision: 0.4976, Recall: 0.3149, F1 Score: 0.3857
+Source Dataset: amazon/apparel, Target Dataset: amazon/dvd
+Target Accuracy: 0.6725, Estimated Accuracy: 0.6705, Estimation Error: 0.0020, Precision: 0.4932, Recall: 0.3280, F1 Score: 0.3939
+Source Dataset: amazon/apparel, Target Dataset: amazon/electronics
+Target Accuracy: 0.7535, Estimated Accuracy: 0.4370, Estimation Error: 0.3165, Precision: 0.5115, Recall: 0.5620, F1 Score: 0.5356
+Source Dataset: amazon/apparel, Target Dataset: amazon/health
+Target Accuracy: 0.7640, Estimated Accuracy: 0.4335, Estimation Error: 0.3305, Precision: 0.4987, Recall: 0.5684, F1 Score: 0.5313
+Source Dataset: amazon/apparel, Target Dataset: amazon/kitchen
+Target Accuracy: 0.7505, Estimated Accuracy: 0.4055, Estimation Error: 0.3450, Precision: 0.5156, Recall: 0.5900, F1 Score: 0.5503
+Source Dataset: amazon/apparel, Target Dataset: amazon/music
+Target Accuracy: 0.6640, Estimated Accuracy: 0.3150, Estimation Error: 0.3490, Precision: 0.5044, Recall: 0.6828, F1 Score: 0.5802
+Source Dataset: amazon/apparel, Target Dataset: amazon/sports
+Target Accuracy: 0.7625, Estimated Accuracy: 0.4280, Estimation Error: 0.3345, Precision: 0.5000, Recall: 0.5703, F1 Score: 0.5328
+Source Dataset: amazon/apparel, Target Dataset: amazon/toys
+Target Accuracy: 0.7655, Estimated Accuracy: 0.6095, Estimation Error: 0.1560, Precision: 0.4942, Recall: 0.3895, F1 Score: 0.4357
+Source Dataset: amazon/apparel, Target Dataset: amazon/video
+Target Accuracy: 0.6765, Estimated Accuracy: 0.3545, Estimation Error: 0.3220, Precision: 0.4818, Recall: 0.6527, F1 Score: 0.5544
+Source Dataset: amazon/books, Target Dataset: amazon/apparel
+Target Accuracy: 0.6990, Estimated Accuracy: 0.3880, Estimation Error: 0.3110, Precision: 0.5057, Recall: 0.6105, F1 Score: 0.5532
+Source Dataset: amazon/books, Target Dataset: amazon/dvd
+Target Accuracy: 0.7450, Estimated Accuracy: 0.4545, Estimation Error: 0.2905, Precision: 0.5023, Recall: 0.5469, F1 Score: 0.5237
+Source Dataset: amazon/books, Target Dataset: amazon/electronics
+Target Accuracy: 0.6590, Estimated Accuracy: 0.4610, Estimation Error: 0.1980, Precision: 0.5204, Recall: 0.5374, F1 Score: 0.5287
+Source Dataset: amazon/books, Target Dataset: amazon/health
+Target Accuracy: 0.6815, Estimated Accuracy: 0.4765, Estimation Error: 0.2050, Precision: 0.5043, Recall: 0.5233, F1 Score: 0.5136
+Source Dataset: amazon/books, Target Dataset: amazon/kitchen
+Target Accuracy: 0.6835, Estimated Accuracy: 0.4775, Estimation Error: 0.2060, Precision: 0.5129, Recall: 0.5219, F1 Score: 0.5174
+Source Dataset: amazon/books, Target Dataset: amazon/music
+Target Accuracy: 0.7525, Estimated Accuracy: 0.4875, Estimation Error: 0.2650, Precision: 0.4878, Recall: 0.5128, F1 Score: 0.5000
+Source Dataset: amazon/books, Target Dataset: amazon/sports
+Target Accuracy: 0.6825, Estimated Accuracy: 0.4535, Estimation Error: 0.2290, Precision: 0.5096, Recall: 0.5455, F1 Score: 0.5270
+Source Dataset: amazon/books, Target Dataset: amazon/toys
+Target Accuracy: 0.6985, Estimated Accuracy: 0.4345, Estimation Error: 0.2640, Precision: 0.4978, Recall: 0.5658, F1 Score: 0.5296
+Source Dataset: amazon/books, Target Dataset: amazon/video
+Target Accuracy: 0.7225, Estimated Accuracy: 0.4460, Estimation Error: 0.2765, Precision: 0.5018, Recall: 0.5543, F1 Score: 0.5268
+Source Dataset: amazon/dvd, Target Dataset: amazon/apparel
+Target Accuracy: 0.7010, Estimated Accuracy: 0.5550, Estimation Error: 0.1460, Precision: 0.4910, Recall: 0.4441, F1 Score: 0.4664
+Source Dataset: amazon/dvd, Target Dataset: amazon/books
+Target Accuracy: 0.7515, Estimated Accuracy: 0.4410, Estimation Error: 0.3105, Precision: 0.5054, Recall: 0.5656, F1 Score: 0.5338
+Source Dataset: amazon/dvd, Target Dataset: amazon/electronics
+Target Accuracy: 0.7120, Estimated Accuracy: 0.5360, Estimation Error: 0.1760, Precision: 0.5097, Recall: 0.4646, F1 Score: 0.4861
+Source Dataset: amazon/dvd, Target Dataset: amazon/health
+Target Accuracy: 0.7215, Estimated Accuracy: 0.4780, Estimation Error: 0.2435, Precision: 0.4971, Recall: 0.5227, F1 Score: 0.5096
+Source Dataset: amazon/dvd, Target Dataset: amazon/kitchen
+Target Accuracy: 0.7020, Estimated Accuracy: 0.4965, Estimation Error: 0.2055, Precision: 0.4916, Recall: 0.5030, F1 Score: 0.4972
+Source Dataset: amazon/dvd, Target Dataset: amazon/music
+Target Accuracy: 0.7425, Estimated Accuracy: 0.6485, Estimation Error: 0.0940, Precision: 0.5107, Recall: 0.3551, F1 Score: 0.4189
+Source Dataset: amazon/dvd, Target Dataset: amazon/sports
+Target Accuracy: 0.7150, Estimated Accuracy: 0.4870, Estimation Error: 0.2280, Precision: 0.4951, Recall: 0.5131, F1 Score: 0.5040
+Source Dataset: amazon/dvd, Target Dataset: amazon/toys
+Target Accuracy: 0.7410, Estimated Accuracy: 0.5730, Estimation Error: 0.1680, Precision: 0.4871, Recall: 0.4245, F1 Score: 0.4537
+Source Dataset: amazon/dvd, Target Dataset: amazon/video
+Target Accuracy: 0.7970, Estimated Accuracy: 0.4995, Estimation Error: 0.2975, Precision: 0.5005, Recall: 0.4990, F1 Score: 0.4998
+Source Dataset: amazon/electronics, Target Dataset: amazon/apparel
+Target Accuracy: 0.7640, Estimated Accuracy: 0.6060, Estimation Error: 0.1580, Precision: 0.5025, Recall: 0.3944, F1 Score: 0.4420
+Source Dataset: amazon/electronics, Target Dataset: amazon/books
+Target Accuracy: 0.6320, Estimated Accuracy: 0.7320, Estimation Error: 0.1000, Precision: 0.4907, Recall: 0.2657, F1 Score: 0.3447
+Source Dataset: amazon/electronics, Target Dataset: amazon/dvd
+Target Accuracy: 0.6720, Estimated Accuracy: 0.6645, Estimation Error: 0.0075, Precision: 0.5052, Recall: 0.3363, F1 Score: 0.4038
+Source Dataset: amazon/electronics, Target Dataset: amazon/health
+Target Accuracy: 0.7605, Estimated Accuracy: 0.5705, Estimation Error: 0.1900, Precision: 0.5215, Recall: 0.4354, F1 Score: 0.4746
+Source Dataset: amazon/electronics, Target Dataset: amazon/kitchen
+Target Accuracy: 0.7695, Estimated Accuracy: 0.6005, Estimation Error: 0.1690, Precision: 0.4781, Recall: 0.3950, F1 Score: 0.4326
+Source Dataset: amazon/electronics, Target Dataset: amazon/music
+Target Accuracy: 0.6545, Estimated Accuracy: 0.6735, Estimation Error: 0.0190, Precision: 0.4962, Recall: 0.3256, F1 Score: 0.3932
+Source Dataset: amazon/electronics, Target Dataset: amazon/sports
+Target Accuracy: 0.7670, Estimated Accuracy: 0.5965, Estimation Error: 0.1705, Precision: 0.5081, Recall: 0.4035, F1 Score: 0.4498
+Source Dataset: amazon/electronics, Target Dataset: amazon/toys
+Target Accuracy: 0.7675, Estimated Accuracy: 0.6265, Estimation Error: 0.1410, Precision: 0.5234, Recall: 0.3785, F1 Score: 0.4393
+Source Dataset: amazon/electronics, Target Dataset: amazon/video
+Target Accuracy: 0.7070, Estimated Accuracy: 0.6590, Estimation Error: 0.0480, Precision: 0.4956, Recall: 0.3400, F1 Score: 0.4033
+Source Dataset: amazon/health, Target Dataset: amazon/apparel
+Target Accuracy: 0.7905, Estimated Accuracy: 0.4505, Estimation Error: 0.3400, Precision: 0.4923, Recall: 0.5537, F1 Score: 0.5212
+Source Dataset: amazon/health, Target Dataset: amazon/books
+Target Accuracy: 0.6630, Estimated Accuracy: 0.7340, Estimation Error: 0.0710, Precision: 0.5150, Recall: 0.2697, F1 Score: 0.3540
+Source Dataset: amazon/health, Target Dataset: amazon/dvd
+Target Accuracy: 0.6895, Estimated Accuracy: 0.3075, Estimation Error: 0.3820, Precision: 0.5047, Recall: 0.6900, F1 Score: 0.5830
+Source Dataset: amazon/health, Target Dataset: amazon/electronics
+Target Accuracy: 0.7820, Estimated Accuracy: 0.4780, Estimation Error: 0.3040, Precision: 0.5239, Recall: 0.5190, F1 Score: 0.5214
+Source Dataset: amazon/health, Target Dataset: amazon/kitchen
+Target Accuracy: 0.7835, Estimated Accuracy: 0.4465, Estimation Error: 0.3370, Precision: 0.5321, Recall: 0.5572, F1 Score: 0.5444
+Source Dataset: amazon/health, Target Dataset: amazon/music
+Target Accuracy: 0.6920, Estimated Accuracy: 0.3600, Estimation Error: 0.3320, Precision: 0.5070, Recall: 0.6375, F1 Score: 0.5648
+Source Dataset: amazon/health, Target Dataset: amazon/sports
+Target Accuracy: 0.7835, Estimated Accuracy: 0.4445, Estimation Error: 0.3390, Precision: 0.4977, Recall: 0.5592, F1 Score: 0.5267
+Source Dataset: amazon/health, Target Dataset: amazon/toys
+Target Accuracy: 0.7860, Estimated Accuracy: 0.4115, Estimation Error: 0.3745, Precision: 0.5064, Recall: 0.5855, F1 Score: 0.5431
+Source Dataset: amazon/health, Target Dataset: amazon/video
+Target Accuracy: 0.7230, Estimated Accuracy: 0.3110, Estimation Error: 0.4120, Precision: 0.4956, Recall: 0.6913, F1 Score: 0.5773
+Source Dataset: amazon/kitchen, Target Dataset: amazon/apparel
+Target Accuracy: 0.7870, Estimated Accuracy: 0.5965, Estimation Error: 0.1905, Precision: 0.4783, Recall: 0.3979, F1 Score: 0.4344
+Source Dataset: amazon/kitchen, Target Dataset: amazon/books
+Target Accuracy: 0.6555, Estimated Accuracy: 0.6680, Estimation Error: 0.0125, Precision: 0.5286, Recall: 0.3385, F1 Score: 0.4127
+Source Dataset: amazon/kitchen, Target Dataset: amazon/dvd
+Target Accuracy: 0.6605, Estimated Accuracy: 0.7180, Estimation Error: 0.0575, Precision: 0.5000, Recall: 0.2823, F1 Score: 0.3608
+Source Dataset: amazon/kitchen, Target Dataset: amazon/electronics
+Target Accuracy: 0.7825, Estimated Accuracy: 0.4770, Estimation Error: 0.3055, Precision: 0.5019, Recall: 0.5255, F1 Score: 0.5134
+Source Dataset: amazon/kitchen, Target Dataset: amazon/health
+Target Accuracy: 0.7925, Estimated Accuracy: 0.4365, Estimation Error: 0.3560, Precision: 0.5040, Recall: 0.5541, F1 Score: 0.5279
+Source Dataset: amazon/kitchen, Target Dataset: amazon/music
+Target Accuracy: 0.6745, Estimated Accuracy: 0.6955, Estimation Error: 0.0210, Precision: 0.5123, Recall: 0.3074, F1 Score: 0.3842
+Source Dataset: amazon/kitchen, Target Dataset: amazon/sports
+Target Accuracy: 0.7990, Estimated Accuracy: 0.4615, Estimation Error: 0.3375, Precision: 0.5367, Recall: 0.5402, F1 Score: 0.5384
+Source Dataset: amazon/kitchen, Target Dataset: amazon/toys
+Target Accuracy: 0.7745, Estimated Accuracy: 0.6290, Estimation Error: 0.1455, Precision: 0.4892, Recall: 0.3685, F1 Score: 0.4204
+Source Dataset: amazon/kitchen, Target Dataset: amazon/video
+Target Accuracy: 0.6740, Estimated Accuracy: 0.7060, Estimation Error: 0.0320, Precision: 0.5034, Recall: 0.2948, F1 Score: 0.3719
+Source Dataset: amazon/music, Target Dataset: amazon/apparel
+Target Accuracy: 0.7130, Estimated Accuracy: 0.5200, Estimation Error: 0.1930, Precision: 0.5000, Recall: 0.4800, F1 Score: 0.4898
+Source Dataset: amazon/music, Target Dataset: amazon/books
+Target Accuracy: 0.6990, Estimated Accuracy: 0.6490, Estimation Error: 0.0500, Precision: 0.5242, Recall: 0.3559, F1 Score: 0.4240
+Source Dataset: amazon/music, Target Dataset: amazon/dvd
+Target Accuracy: 0.7535, Estimated Accuracy: 0.4910, Estimation Error: 0.2625, Precision: 0.4931, Recall: 0.5224, F1 Score: 0.5073
+Source Dataset: amazon/music, Target Dataset: amazon/electronics
+Target Accuracy: 0.6720, Estimated Accuracy: 0.6460, Estimation Error: 0.0260, Precision: 0.5014, Recall: 0.3543, F1 Score: 0.4152
+Source Dataset: amazon/music, Target Dataset: amazon/health
+Target Accuracy: 0.7010, Estimated Accuracy: 0.5310, Estimation Error: 0.1700, Precision: 0.4989, Recall: 0.4689, F1 Score: 0.4835
+Source Dataset: amazon/music, Target Dataset: amazon/kitchen
+Target Accuracy: 0.7085, Estimated Accuracy: 0.5465, Estimation Error: 0.1620, Precision: 0.5083, Recall: 0.4542, F1 Score: 0.4797
+Source Dataset: amazon/music, Target Dataset: amazon/sports
+Target Accuracy: 0.6900, Estimated Accuracy: 0.5430, Estimation Error: 0.1470, Precision: 0.4902, Recall: 0.4562, F1 Score: 0.4726
+Source Dataset: amazon/music, Target Dataset: amazon/toys
+Target Accuracy: 0.7145, Estimated Accuracy: 0.5030, Estimation Error: 0.2115, Precision: 0.5010, Recall: 0.4975, F1 Score: 0.4992
+Source Dataset: amazon/music, Target Dataset: amazon/video
+Target Accuracy: 0.7300, Estimated Accuracy: 0.5230, Estimation Error: 0.2070, Precision: 0.4906, Recall: 0.4766, F1 Score: 0.4835
+Source Dataset: amazon/sports, Target Dataset: amazon/apparel
+Target Accuracy: 0.7820, Estimated Accuracy: 0.5860, Estimation Error: 0.1960, Precision: 0.4952, Recall: 0.4116, F1 Score: 0.4496
+Source Dataset: amazon/sports, Target Dataset: amazon/books
+Target Accuracy: 0.6430, Estimated Accuracy: 0.7740, Estimation Error: 0.1310, Precision: 0.5376, Recall: 0.2350, F1 Score: 0.3271
+Source Dataset: amazon/sports, Target Dataset: amazon/dvd
+Target Accuracy: 0.6760, Estimated Accuracy: 0.7020, Estimation Error: 0.0260, Precision: 0.5000, Recall: 0.2986, F1 Score: 0.3739
+Source Dataset: amazon/sports, Target Dataset: amazon/electronics
+Target Accuracy: 0.7850, Estimated Accuracy: 0.4515, Estimation Error: 0.3335, Precision: 0.5005, Recall: 0.5457, F1 Score: 0.5221
+Source Dataset: amazon/sports, Target Dataset: amazon/health
+Target Accuracy: 0.7500, Estimated Accuracy: 0.5880, Estimation Error: 0.1620, Precision: 0.5218, Recall: 0.4216, F1 Score: 0.4664
+Source Dataset: amazon/sports, Target Dataset: amazon/kitchen
+Target Accuracy: 0.7800, Estimated Accuracy: 0.5330, Estimation Error: 0.2470, Precision: 0.4850, Recall: 0.4632, F1 Score: 0.4738
+Source Dataset: amazon/sports, Target Dataset: amazon/music
+Target Accuracy: 0.6710, Estimated Accuracy: 0.7465, Estimation Error: 0.0755, Precision: 0.5049, Recall: 0.2550, F1 Score: 0.3388
+Source Dataset: amazon/sports, Target Dataset: amazon/toys
+Target Accuracy: 0.7680, Estimated Accuracy: 0.5190, Estimation Error: 0.2490, Precision: 0.5083, Recall: 0.4959, F1 Score: 0.5021
+Source Dataset: amazon/sports, Target Dataset: amazon/video
+Target Accuracy: 0.6990, Estimated Accuracy: 0.7090, Estimation Error: 0.0100, Precision: 0.5172, Recall: 0.2963, F1 Score: 0.3767
+Source Dataset: amazon/toys, Target Dataset: amazon/apparel
+Target Accuracy: 0.7450, Estimated Accuracy: 0.6205, Estimation Error: 0.1245, Precision: 0.5046, Recall: 0.3762, F1 Score: 0.4311
+Source Dataset: amazon/toys, Target Dataset: amazon/books
+Target Accuracy: 0.6950, Estimated Accuracy: 0.4360, Estimation Error: 0.2590, Precision: 0.4982, Recall: 0.5643, F1 Score: 0.5292
+Source Dataset: amazon/toys, Target Dataset: amazon/dvd
+Target Accuracy: 0.7180, Estimated Accuracy: 0.4860, Estimation Error: 0.2320, Precision: 0.5195, Recall: 0.5135, F1 Score: 0.5164
+Source Dataset: amazon/toys, Target Dataset: amazon/electronics
+Target Accuracy: 0.6925, Estimated Accuracy: 0.7195, Estimation Error: 0.0270, Precision: 0.5276, Recall: 0.2871, F1 Score: 0.3719
+Source Dataset: amazon/toys, Target Dataset: amazon/health
+Target Accuracy: 0.7330, Estimated Accuracy: 0.6685, Estimation Error: 0.0645, Precision: 0.4992, Recall: 0.3317, F1 Score: 0.3986
+Source Dataset: amazon/toys, Target Dataset: amazon/kitchen
+Target Accuracy: 0.7415, Estimated Accuracy: 0.6620, Estimation Error: 0.0795, Precision: 0.5030, Recall: 0.3390, F1 Score: 0.4050
+Source Dataset: amazon/toys, Target Dataset: amazon/music
+Target Accuracy: 0.6835, Estimated Accuracy: 0.3600, Estimation Error: 0.3235, Precision: 0.5031, Recall: 0.6395, F1 Score: 0.5632
+Source Dataset: amazon/toys, Target Dataset: amazon/sports
+Target Accuracy: 0.7405, Estimated Accuracy: 0.6685, Estimation Error: 0.0720, Precision: 0.4827, Recall: 0.3309, F1 Score: 0.3926
+Source Dataset: amazon/toys, Target Dataset: amazon/video
+Target Accuracy: 0.7065, Estimated Accuracy: 0.4710, Estimation Error: 0.2355, Precision: 0.5161, Recall: 0.5275, F1 Score: 0.5217
+Source Dataset: amazon/video, Target Dataset: amazon/apparel
+Target Accuracy: 0.7145, Estimated Accuracy: 0.6285, Estimation Error: 0.0860, Precision: 0.5047, Recall: 0.3724, F1 Score: 0.4286
+Source Dataset: amazon/video, Target Dataset: amazon/books
+Target Accuracy: 0.7020, Estimated Accuracy: 0.5730, Estimation Error: 0.1290, Precision: 0.5082, Recall: 0.4280, F1 Score: 0.4647
+Source Dataset: amazon/video, Target Dataset: amazon/dvd
+Target Accuracy: 0.7730, Estimated Accuracy: 0.5785, Estimation Error: 0.1945, Precision: 0.5113, Recall: 0.4267, F1 Score: 0.4652
+Source Dataset: amazon/video, Target Dataset: amazon/electronics
+Target Accuracy: 0.6810, Estimated Accuracy: 0.5730, Estimation Error: 0.1080, Precision: 0.4977, Recall: 0.4267, F1 Score: 0.4595
+Source Dataset: amazon/video, Target Dataset: amazon/health
+Target Accuracy: 0.6975, Estimated Accuracy: 0.5680, Estimation Error: 0.1295, Precision: 0.4815, Recall: 0.4293, F1 Score: 0.4539
+Source Dataset: amazon/video, Target Dataset: amazon/kitchen
+Target Accuracy: 0.6765, Estimated Accuracy: 0.5955, Estimation Error: 0.0810, Precision: 0.5006, Recall: 0.4046, F1 Score: 0.4475
+Source Dataset: amazon/video, Target Dataset: amazon/music
+Target Accuracy: 0.7075, Estimated Accuracy: 0.6850, Estimation Error: 0.0225, Precision: 0.4746, Recall: 0.3086, F1 Score: 0.3740
+Source Dataset: amazon/video, Target Dataset: amazon/sports
+Target Accuracy: 0.6885, Estimated Accuracy: 0.6415, Estimation Error: 0.0470, Precision: 0.4742, Recall: 0.3531, F1 Score: 0.4048
+Source Dataset: amazon/video, Target Dataset: amazon/toys
+Target Accuracy: 0.6930, Estimated Accuracy: 0.6610, Estimation Error: 0.0320, Precision: 0.4794, Recall: 0.3344, F1 Score: 0.3939
+Summary Results
+Method: acc_weighted_ri
+Accuracy Estimation
+Average Estimation Error: 0.1861
+Error Detection
+Average F1 Score: 0.4687
+['amazon/apparel', 'amazon/books', 'amazon/dvd', 'amazon/electronics', 'amazon/health', 'amazon/kitchen', 'amazon/music', 'amazon/sports', 'amazon/toys', 'amazon/video']
+Source Dataset: amazon/apparel, Target Dataset: amazon/books
+Target Accuracy: 0.6645, Estimated Accuracy: 0.6845, Estimation Error: 0.0200, Precision: 0.4960, Recall: 0.3146, F1 Score: 0.3850
+Source Dataset: amazon/apparel, Target Dataset: amazon/dvd
+Target Accuracy: 0.6725, Estimated Accuracy: 0.3295, Estimation Error: 0.3430, Precision: 0.4922, Recall: 0.6742, F1 Score: 0.5690
+Source Dataset: amazon/apparel, Target Dataset: amazon/electronics
+Target Accuracy: 0.7535, Estimated Accuracy: 0.4370, Estimation Error: 0.3165, Precision: 0.5044, Recall: 0.5618, F1 Score: 0.5316
+Source Dataset: amazon/apparel, Target Dataset: amazon/health
+Target Accuracy: 0.7640, Estimated Accuracy: 0.4370, Estimation Error: 0.3270, Precision: 0.5018, Recall: 0.5673, F1 Score: 0.5325
+Source Dataset: amazon/apparel, Target Dataset: amazon/kitchen
+Target Accuracy: 0.7505, Estimated Accuracy: 0.5745, Estimation Error: 0.1760, Precision: 0.4947, Recall: 0.4197, F1 Score: 0.4542
+Source Dataset: amazon/apparel, Target Dataset: amazon/music
+Target Accuracy: 0.6640, Estimated Accuracy: 0.6850, Estimation Error: 0.0210, Precision: 0.5016, Recall: 0.3154, F1 Score: 0.3873
+Source Dataset: amazon/apparel, Target Dataset: amazon/sports
+Target Accuracy: 0.7625, Estimated Accuracy: 0.4290, Estimation Error: 0.3335, Precision: 0.5175, Recall: 0.5656, F1 Score: 0.5405
+Source Dataset: amazon/apparel, Target Dataset: amazon/toys
+Target Accuracy: 0.7655, Estimated Accuracy: 0.5995, Estimation Error: 0.1660, Precision: 0.4819, Recall: 0.3967, F1 Score: 0.4352
+Source Dataset: amazon/apparel, Target Dataset: amazon/video
+Target Accuracy: 0.6765, Estimated Accuracy: 0.3545, Estimation Error: 0.3220, Precision: 0.4950, Recall: 0.6474, F1 Score: 0.5610
+Source Dataset: amazon/books, Target Dataset: amazon/apparel
+Target Accuracy: 0.6990, Estimated Accuracy: 0.3880, Estimation Error: 0.3110, Precision: 0.5057, Recall: 0.6105, F1 Score: 0.5532
+Source Dataset: amazon/books, Target Dataset: amazon/dvd
+Target Accuracy: 0.7450, Estimated Accuracy: 0.4625, Estimation Error: 0.2825, Precision: 0.4847, Recall: 0.5338, F1 Score: 0.5080
+Source Dataset: amazon/books, Target Dataset: amazon/electronics
+Target Accuracy: 0.6590, Estimated Accuracy: 0.4610, Estimation Error: 0.1980, Precision: 0.5065, Recall: 0.5385, F1 Score: 0.5220
+Source Dataset: amazon/books, Target Dataset: amazon/health
+Target Accuracy: 0.6815, Estimated Accuracy: 0.4765, Estimation Error: 0.2050, Precision: 0.5138, Recall: 0.5228, F1 Score: 0.5183
+Source Dataset: amazon/books, Target Dataset: amazon/kitchen
+Target Accuracy: 0.6835, Estimated Accuracy: 0.4775, Estimation Error: 0.2060, Precision: 0.4909, Recall: 0.5229, F1 Score: 0.5064
+Source Dataset: amazon/books, Target Dataset: amazon/music
+Target Accuracy: 0.7525, Estimated Accuracy: 0.4875, Estimation Error: 0.2650, Precision: 0.4956, Recall: 0.5126, F1 Score: 0.5040
+Source Dataset: amazon/books, Target Dataset: amazon/sports
+Target Accuracy: 0.6825, Estimated Accuracy: 0.4535, Estimation Error: 0.2290, Precision: 0.4941, Recall: 0.5471, F1 Score: 0.5192
+Source Dataset: amazon/books, Target Dataset: amazon/toys
+Target Accuracy: 0.6985, Estimated Accuracy: 0.4345, Estimation Error: 0.2640, Precision: 0.4881, Recall: 0.5673, F1 Score: 0.5247
+Source Dataset: amazon/books, Target Dataset: amazon/video
+Target Accuracy: 0.7225, Estimated Accuracy: 0.4490, Estimation Error: 0.2735, Precision: 0.4909, Recall: 0.5549, F1 Score: 0.5209
+Source Dataset: amazon/dvd, Target Dataset: amazon/apparel
+Target Accuracy: 0.7010, Estimated Accuracy: 0.5550, Estimation Error: 0.1460, Precision: 0.5101, Recall: 0.4460, F1 Score: 0.4759
+Source Dataset: amazon/dvd, Target Dataset: amazon/books
+Target Accuracy: 0.7515, Estimated Accuracy: 0.4415, Estimation Error: 0.3100, Precision: 0.4951, Recall: 0.5569, F1 Score: 0.5242
+Source Dataset: amazon/dvd, Target Dataset: amazon/electronics
+Target Accuracy: 0.7120, Estimated Accuracy: 0.5360, Estimation Error: 0.1760, Precision: 0.4914, Recall: 0.4634, F1 Score: 0.4770
+Source Dataset: amazon/dvd, Target Dataset: amazon/health
+Target Accuracy: 0.7215, Estimated Accuracy: 0.4800, Estimation Error: 0.2415, Precision: 0.5029, Recall: 0.5204, F1 Score: 0.5115
+Source Dataset: amazon/dvd, Target Dataset: amazon/kitchen
+Target Accuracy: 0.7020, Estimated Accuracy: 0.4965, Estimation Error: 0.2055, Precision: 0.5055, Recall: 0.5040, F1 Score: 0.5047
+Source Dataset: amazon/dvd, Target Dataset: amazon/music
+Target Accuracy: 0.7425, Estimated Accuracy: 0.6525, Estimation Error: 0.0900, Precision: 0.5079, Recall: 0.3505, F1 Score: 0.4148
+Source Dataset: amazon/dvd, Target Dataset: amazon/sports
+Target Accuracy: 0.7150, Estimated Accuracy: 0.4875, Estimation Error: 0.2275, Precision: 0.4683, Recall: 0.5139, F1 Score: 0.4900
+Source Dataset: amazon/dvd, Target Dataset: amazon/toys
+Target Accuracy: 0.7410, Estimated Accuracy: 0.5725, Estimation Error: 0.1685, Precision: 0.5018, Recall: 0.4299, F1 Score: 0.4630
+Source Dataset: amazon/dvd, Target Dataset: amazon/video
+Target Accuracy: 0.7970, Estimated Accuracy: 0.4730, Estimation Error: 0.3240, Precision: 0.5038, Recall: 0.5268, F1 Score: 0.5150
+Source Dataset: amazon/electronics, Target Dataset: amazon/apparel
+Target Accuracy: 0.7640, Estimated Accuracy: 0.6080, Estimation Error: 0.1560, Precision: 0.5128, Recall: 0.3957, F1 Score: 0.4467
+Source Dataset: amazon/electronics, Target Dataset: amazon/books
+Target Accuracy: 0.6320, Estimated Accuracy: 0.7320, Estimation Error: 0.1000, Precision: 0.5205, Recall: 0.2730, F1 Score: 0.3582
+Source Dataset: amazon/electronics, Target Dataset: amazon/dvd
+Target Accuracy: 0.6720, Estimated Accuracy: 0.6635, Estimation Error: 0.0085, Precision: 0.4963, Recall: 0.3360, F1 Score: 0.4007
+Source Dataset: amazon/electronics, Target Dataset: amazon/health
+Target Accuracy: 0.7605, Estimated Accuracy: 0.5715, Estimation Error: 0.1890, Precision: 0.5158, Recall: 0.4355, F1 Score: 0.4722
+Source Dataset: amazon/electronics, Target Dataset: amazon/kitchen
+Target Accuracy: 0.7695, Estimated Accuracy: 0.6055, Estimation Error: 0.1640, Precision: 0.5032, Recall: 0.3935, F1 Score: 0.4416
+Source Dataset: amazon/electronics, Target Dataset: amazon/music
+Target Accuracy: 0.6545, Estimated Accuracy: 0.6725, Estimation Error: 0.0180, Precision: 0.5206, Recall: 0.3320, F1 Score: 0.4055
+Source Dataset: amazon/electronics, Target Dataset: amazon/sports
+Target Accuracy: 0.7670, Estimated Accuracy: 0.6040, Estimation Error: 0.1630, Precision: 0.5000, Recall: 0.3984, F1 Score: 0.4434
+Source Dataset: amazon/electronics, Target Dataset: amazon/toys
+Target Accuracy: 0.7675, Estimated Accuracy: 0.6200, Estimation Error: 0.1475, Precision: 0.5013, Recall: 0.3799, F1 Score: 0.4322
+Source Dataset: amazon/electronics, Target Dataset: amazon/video
+Target Accuracy: 0.7070, Estimated Accuracy: 0.6590, Estimation Error: 0.0480, Precision: 0.4956, Recall: 0.3400, F1 Score: 0.4033
+Source Dataset: amazon/health, Target Dataset: amazon/apparel
+Target Accuracy: 0.7905, Estimated Accuracy: 0.4515, Estimation Error: 0.3390, Precision: 0.5105, Recall: 0.5453, F1 Score: 0.5273
+Source Dataset: amazon/health, Target Dataset: amazon/books
+Target Accuracy: 0.6630, Estimated Accuracy: 0.7340, Estimation Error: 0.0710, Precision: 0.5451, Recall: 0.2767, F1 Score: 0.3671
+Source Dataset: amazon/health, Target Dataset: amazon/dvd
+Target Accuracy: 0.6895, Estimated Accuracy: 0.3070, Estimation Error: 0.3825, Precision: 0.4935, Recall: 0.6972, F1 Score: 0.5779
+Source Dataset: amazon/health, Target Dataset: amazon/electronics
+Target Accuracy: 0.7820, Estimated Accuracy: 0.4780, Estimation Error: 0.3040, Precision: 0.5067, Recall: 0.5207, F1 Score: 0.5136
+Source Dataset: amazon/health, Target Dataset: amazon/kitchen
+Target Accuracy: 0.7835, Estimated Accuracy: 0.4540, Estimation Error: 0.3295, Precision: 0.4945, Recall: 0.5416, F1 Score: 0.5170
+Source Dataset: amazon/health, Target Dataset: amazon/music
+Target Accuracy: 0.6920, Estimated Accuracy: 0.3600, Estimation Error: 0.3320, Precision: 0.5094, Recall: 0.6367, F1 Score: 0.5660
+Source Dataset: amazon/health, Target Dataset: amazon/sports
+Target Accuracy: 0.7835, Estimated Accuracy: 0.4425, Estimation Error: 0.3410, Precision: 0.4960, Recall: 0.5603, F1 Score: 0.5262
+Source Dataset: amazon/health, Target Dataset: amazon/toys
+Target Accuracy: 0.7860, Estimated Accuracy: 0.4075, Estimation Error: 0.3785, Precision: 0.5080, Recall: 0.5937, F1 Score: 0.5475
+Source Dataset: amazon/health, Target Dataset: amazon/video
+Target Accuracy: 0.7230, Estimated Accuracy: 0.3110, Estimation Error: 0.4120, Precision: 0.4913, Recall: 0.6936, F1 Score: 0.5752
+Source Dataset: amazon/kitchen, Target Dataset: amazon/apparel
+Target Accuracy: 0.7870, Estimated Accuracy: 0.5895, Estimation Error: 0.1975, Precision: 0.4848, Recall: 0.4053, F1 Score: 0.4415
+Source Dataset: amazon/kitchen, Target Dataset: amazon/books
+Target Accuracy: 0.6555, Estimated Accuracy: 0.6675, Estimation Error: 0.0120, Precision: 0.5128, Recall: 0.3353, F1 Score: 0.4055
+Source Dataset: amazon/kitchen, Target Dataset: amazon/dvd
+Target Accuracy: 0.6605, Estimated Accuracy: 0.7185, Estimation Error: 0.0580, Precision: 0.5062, Recall: 0.2830, F1 Score: 0.3631
+Source Dataset: amazon/kitchen, Target Dataset: amazon/electronics
+Target Accuracy: 0.7825, Estimated Accuracy: 0.4820, Estimation Error: 0.3005, Precision: 0.4817, Recall: 0.5193, F1 Score: 0.4997
+Source Dataset: amazon/kitchen, Target Dataset: amazon/health
+Target Accuracy: 0.7925, Estimated Accuracy: 0.4505, Estimation Error: 0.3420, Precision: 0.5077, Recall: 0.5508, F1 Score: 0.5284
+Source Dataset: amazon/kitchen, Target Dataset: amazon/music
+Target Accuracy: 0.6745, Estimated Accuracy: 0.6955, Estimation Error: 0.0210, Precision: 0.5090, Recall: 0.3066, F1 Score: 0.3827
+Source Dataset: amazon/kitchen, Target Dataset: amazon/sports
+Target Accuracy: 0.7990, Estimated Accuracy: 0.4645, Estimation Error: 0.3345, Precision: 0.5023, Recall: 0.5402, F1 Score: 0.5206
+Source Dataset: amazon/kitchen, Target Dataset: amazon/toys
+Target Accuracy: 0.7745, Estimated Accuracy: 0.6250, Estimation Error: 0.1495, Precision: 0.5040, Recall: 0.3731, F1 Score: 0.4288
+Source Dataset: amazon/kitchen, Target Dataset: amazon/video
+Target Accuracy: 0.6740, Estimated Accuracy: 0.7060, Estimation Error: 0.0320, Precision: 0.5340, Recall: 0.3019, F1 Score: 0.3857
+Source Dataset: amazon/music, Target Dataset: amazon/apparel
+Target Accuracy: 0.7130, Estimated Accuracy: 0.5200, Estimation Error: 0.1930, Precision: 0.4875, Recall: 0.4795, F1 Score: 0.4835
+Source Dataset: amazon/music, Target Dataset: amazon/books
+Target Accuracy: 0.6990, Estimated Accuracy: 0.6485, Estimation Error: 0.0505, Precision: 0.4708, Recall: 0.3448, F1 Score: 0.3981
+Source Dataset: amazon/music, Target Dataset: amazon/dvd
+Target Accuracy: 0.7535, Estimated Accuracy: 0.5045, Estimation Error: 0.2490, Precision: 0.5146, Recall: 0.4966, F1 Score: 0.5055
+Source Dataset: amazon/music, Target Dataset: amazon/electronics
+Target Accuracy: 0.6720, Estimated Accuracy: 0.6460, Estimation Error: 0.0260, Precision: 0.5014, Recall: 0.3543, F1 Score: 0.4152
+Source Dataset: amazon/music, Target Dataset: amazon/health
+Target Accuracy: 0.7010, Estimated Accuracy: 0.5310, Estimation Error: 0.1700, Precision: 0.4765, Recall: 0.4676, F1 Score: 0.4720
+Source Dataset: amazon/music, Target Dataset: amazon/kitchen
+Target Accuracy: 0.7085, Estimated Accuracy: 0.5465, Estimation Error: 0.1620, Precision: 0.4972, Recall: 0.4533, F1 Score: 0.4742
+Source Dataset: amazon/music, Target Dataset: amazon/sports
+Target Accuracy: 0.6900, Estimated Accuracy: 0.5430, Estimation Error: 0.1470, Precision: 0.4902, Recall: 0.4562, F1 Score: 0.4726
+Source Dataset: amazon/music, Target Dataset: amazon/toys
+Target Accuracy: 0.7145, Estimated Accuracy: 0.5035, Estimation Error: 0.2110, Precision: 0.4904, Recall: 0.4964, F1 Score: 0.4934
+Source Dataset: amazon/music, Target Dataset: amazon/video
+Target Accuracy: 0.7300, Estimated Accuracy: 0.5240, Estimation Error: 0.2060, Precision: 0.4863, Recall: 0.4744, F1 Score: 0.4803
+Source Dataset: amazon/sports, Target Dataset: amazon/apparel
+Target Accuracy: 0.7820, Estimated Accuracy: 0.6145, Estimation Error: 0.1675, Precision: 0.5058, Recall: 0.3924, F1 Score: 0.4419
+Source Dataset: amazon/sports, Target Dataset: amazon/books
+Target Accuracy: 0.6430, Estimated Accuracy: 0.7740, Estimation Error: 0.1310, Precision: 0.4801, Recall: 0.2210, F1 Score: 0.3026
+Source Dataset: amazon/sports, Target Dataset: amazon/dvd
+Target Accuracy: 0.6760, Estimated Accuracy: 0.7020, Estimation Error: 0.0260, Precision: 0.4564, Recall: 0.2869, F1 Score: 0.3523
+Source Dataset: amazon/sports, Target Dataset: amazon/electronics
+Target Accuracy: 0.7850, Estimated Accuracy: 0.4515, Estimation Error: 0.3335, Precision: 0.4941, Recall: 0.5486, F1 Score: 0.5199
+Source Dataset: amazon/sports, Target Dataset: amazon/health
+Target Accuracy: 0.7500, Estimated Accuracy: 0.6185, Estimation Error: 0.1315, Precision: 0.4875, Recall: 0.3788, F1 Score: 0.4264
+Source Dataset: amazon/sports, Target Dataset: amazon/kitchen
+Target Accuracy: 0.7800, Estimated Accuracy: 0.5300, Estimation Error: 0.2500, Precision: 0.5234, Recall: 0.4910, F1 Score: 0.5067
+Source Dataset: amazon/sports, Target Dataset: amazon/music
+Target Accuracy: 0.6710, Estimated Accuracy: 0.7480, Estimation Error: 0.0770, Precision: 0.5238, Recall: 0.2583, F1 Score: 0.3460
+Source Dataset: amazon/sports, Target Dataset: amazon/toys
+Target Accuracy: 0.7680, Estimated Accuracy: 0.4610, Estimation Error: 0.3070, Precision: 0.4861, Recall: 0.5325, F1 Score: 0.5082
+Source Dataset: amazon/sports, Target Dataset: amazon/video
+Target Accuracy: 0.6990, Estimated Accuracy: 0.7125, Estimation Error: 0.0135, Precision: 0.5200, Recall: 0.2926, F1 Score: 0.3745
+Source Dataset: amazon/toys, Target Dataset: amazon/apparel
+Target Accuracy: 0.7450, Estimated Accuracy: 0.6240, Estimation Error: 0.1210, Precision: 0.5186, Recall: 0.3794, F1 Score: 0.4382
+Source Dataset: amazon/toys, Target Dataset: amazon/books
+Target Accuracy: 0.6950, Estimated Accuracy: 0.5630, Estimation Error: 0.1320, Precision: 0.5149, Recall: 0.4395, F1 Score: 0.4742
+Source Dataset: amazon/toys, Target Dataset: amazon/dvd
+Target Accuracy: 0.7180, Estimated Accuracy: 0.4860, Estimation Error: 0.2320, Precision: 0.4981, Recall: 0.5141, F1 Score: 0.5059
+Source Dataset: amazon/toys, Target Dataset: amazon/electronics
+Target Accuracy: 0.6925, Estimated Accuracy: 0.7185, Estimation Error: 0.0260, Precision: 0.4885, Recall: 0.2781, F1 Score: 0.3544
+Source Dataset: amazon/toys, Target Dataset: amazon/health
+Target Accuracy: 0.7330, Estimated Accuracy: 0.6705, Estimation Error: 0.0625, Precision: 0.4932, Recall: 0.3276, F1 Score: 0.3937
+Source Dataset: amazon/toys, Target Dataset: amazon/kitchen
+Target Accuracy: 0.7415, Estimated Accuracy: 0.6625, Estimation Error: 0.0790, Precision: 0.4830, Recall: 0.3350, F1 Score: 0.3956
+Source Dataset: amazon/toys, Target Dataset: amazon/music
+Target Accuracy: 0.6835, Estimated Accuracy: 0.6405, Estimation Error: 0.0430, Precision: 0.5035, Recall: 0.3602, F1 Score: 0.4200
+Source Dataset: amazon/toys, Target Dataset: amazon/sports
+Target Accuracy: 0.7405, Estimated Accuracy: 0.6715, Estimation Error: 0.0690, Precision: 0.4840, Recall: 0.3289, F1 Score: 0.3916
+Source Dataset: amazon/toys, Target Dataset: amazon/video
+Target Accuracy: 0.7065, Estimated Accuracy: 0.4720, Estimation Error: 0.2345, Precision: 0.5019, Recall: 0.5274, F1 Score: 0.5143
+Source Dataset: amazon/video, Target Dataset: amazon/apparel
+Target Accuracy: 0.7145, Estimated Accuracy: 0.6285, Estimation Error: 0.0860, Precision: 0.4980, Recall: 0.3711, F1 Score: 0.4253
+Source Dataset: amazon/video, Target Dataset: amazon/books
+Target Accuracy: 0.7020, Estimated Accuracy: 0.5785, Estimation Error: 0.1235, Precision: 0.4911, Recall: 0.4182, F1 Score: 0.4517
+Source Dataset: amazon/video, Target Dataset: amazon/dvd
+Target Accuracy: 0.7730, Estimated Accuracy: 0.3880, Estimation Error: 0.3850, Precision: 0.5131, Recall: 0.6085, F1 Score: 0.5567
+Source Dataset: amazon/video, Target Dataset: amazon/electronics
+Target Accuracy: 0.6810, Estimated Accuracy: 0.5730, Estimation Error: 0.1080, Precision: 0.4895, Recall: 0.4257, F1 Score: 0.4553
+Source Dataset: amazon/video, Target Dataset: amazon/health
+Target Accuracy: 0.6975, Estimated Accuracy: 0.5685, Estimation Error: 0.1290, Precision: 0.4925, Recall: 0.4306, F1 Score: 0.4595
+Source Dataset: amazon/video, Target Dataset: amazon/kitchen
+Target Accuracy: 0.6765, Estimated Accuracy: 0.5955, Estimation Error: 0.0810, Precision: 0.5080, Recall: 0.4057, F1 Score: 0.4512
+Source Dataset: amazon/video, Target Dataset: amazon/music
+Target Accuracy: 0.7075, Estimated Accuracy: 0.6850, Estimation Error: 0.0225, Precision: 0.4873, Recall: 0.3117, F1 Score: 0.3802
+Source Dataset: amazon/video, Target Dataset: amazon/sports
+Target Accuracy: 0.6885, Estimated Accuracy: 0.6415, Estimation Error: 0.0470, Precision: 0.5160, Recall: 0.3617, F1 Score: 0.4253
+Source Dataset: amazon/video, Target Dataset: amazon/toys
+Target Accuracy: 0.6930, Estimated Accuracy: 0.6610, Estimation Error: 0.0320, Precision: 0.5074, Recall: 0.3406, F1 Score: 0.4076
+['amazon/apparel', 'amazon/books', 'amazon/dvd', 'amazon/electronics', 'amazon/health', 'amazon/kitchen', 'amazon/music', 'amazon/sports', 'amazon/toys', 'amazon/video']
+Source Dataset: amazon/apparel, Target Dataset: amazon/books
+Target Accuracy: 0.6645, Estimated Accuracy: 0.6845, Estimation Error: 0.0200, Precision: 0.4976, Recall: 0.3149, F1 Score: 0.3857
+Source Dataset: amazon/apparel, Target Dataset: amazon/dvd
+Target Accuracy: 0.6725, Estimated Accuracy: 0.3295, Estimation Error: 0.3430, Precision: 0.4996, Recall: 0.6707, F1 Score: 0.5726
+Source Dataset: amazon/apparel, Target Dataset: amazon/electronics
+Target Accuracy: 0.7535, Estimated Accuracy: 0.4365, Estimation Error: 0.3170, Precision: 0.4933, Recall: 0.5645, F1 Score: 0.5265
+Source Dataset: amazon/apparel, Target Dataset: amazon/health
+Target Accuracy: 0.7640, Estimated Accuracy: 0.4390, Estimation Error: 0.3250, Precision: 0.5009, Recall: 0.5631, F1 Score: 0.5302
+Source Dataset: amazon/apparel, Target Dataset: amazon/kitchen
+Target Accuracy: 0.7505, Estimated Accuracy: 0.4085, Estimation Error: 0.3420, Precision: 0.5004, Recall: 0.5926, F1 Score: 0.5426
+Source Dataset: amazon/apparel, Target Dataset: amazon/music
+Target Accuracy: 0.6640, Estimated Accuracy: 0.3150, Estimation Error: 0.3490, Precision: 0.4905, Recall: 0.6899, F1 Score: 0.5734
+Source Dataset: amazon/apparel, Target Dataset: amazon/sports
+Target Accuracy: 0.7625, Estimated Accuracy: 0.4285, Estimation Error: 0.3340, Precision: 0.5092, Recall: 0.5745, F1 Score: 0.5399
+Source Dataset: amazon/apparel, Target Dataset: amazon/toys
+Target Accuracy: 0.7655, Estimated Accuracy: 0.3925, Estimation Error: 0.3730, Precision: 0.4831, Recall: 0.6121, F1 Score: 0.5400
+Source Dataset: amazon/apparel, Target Dataset: amazon/video
+Target Accuracy: 0.6765, Estimated Accuracy: 0.3545, Estimation Error: 0.3220, Precision: 0.4934, Recall: 0.6480, F1 Score: 0.5602
+Source Dataset: amazon/books, Target Dataset: amazon/apparel
+Target Accuracy: 0.6990, Estimated Accuracy: 0.3880, Estimation Error: 0.3110, Precision: 0.4926, Recall: 0.6141, F1 Score: 0.5467
+Source Dataset: amazon/books, Target Dataset: amazon/dvd
+Target Accuracy: 0.7450, Estimated Accuracy: 0.4605, Estimation Error: 0.2845, Precision: 0.5283, Recall: 0.5377, F1 Score: 0.5330
+Source Dataset: amazon/books, Target Dataset: amazon/electronics
+Target Accuracy: 0.6590, Estimated Accuracy: 0.4610, Estimation Error: 0.1980, Precision: 0.5000, Recall: 0.5390, F1 Score: 0.5188
+Source Dataset: amazon/books, Target Dataset: amazon/health
+Target Accuracy: 0.6815, Estimated Accuracy: 0.4765, Estimation Error: 0.2050, Precision: 0.4928, Recall: 0.5239, F1 Score: 0.5079
+Source Dataset: amazon/books, Target Dataset: amazon/kitchen
+Target Accuracy: 0.6835, Estimated Accuracy: 0.4775, Estimation Error: 0.2060, Precision: 0.4909, Recall: 0.5229, F1 Score: 0.5064
+Source Dataset: amazon/books, Target Dataset: amazon/music
+Target Accuracy: 0.7525, Estimated Accuracy: 0.4875, Estimation Error: 0.2650, Precision: 0.5063, Recall: 0.5123, F1 Score: 0.5093
+Source Dataset: amazon/books, Target Dataset: amazon/sports
+Target Accuracy: 0.6825, Estimated Accuracy: 0.4535, Estimation Error: 0.2290, Precision: 0.4986, Recall: 0.5466, F1 Score: 0.5215
+Source Dataset: amazon/books, Target Dataset: amazon/toys
+Target Accuracy: 0.6985, Estimated Accuracy: 0.4345, Estimation Error: 0.2640, Precision: 0.4898, Recall: 0.5670, F1 Score: 0.5256
+Source Dataset: amazon/books, Target Dataset: amazon/video
+Target Accuracy: 0.7225, Estimated Accuracy: 0.4470, Estimation Error: 0.2755, Precision: 0.4946, Recall: 0.5553, F1 Score: 0.5232
+Source Dataset: amazon/dvd, Target Dataset: amazon/apparel
+Target Accuracy: 0.7010, Estimated Accuracy: 0.5550, Estimation Error: 0.1460, Precision: 0.4798, Recall: 0.4429, F1 Score: 0.4606
+Source Dataset: amazon/dvd, Target Dataset: amazon/books
+Target Accuracy: 0.7515, Estimated Accuracy: 0.4345, Estimation Error: 0.3170, Precision: 0.4907, Recall: 0.5612, F1 Score: 0.5236
+Source Dataset: amazon/dvd, Target Dataset: amazon/electronics
+Target Accuracy: 0.7120, Estimated Accuracy: 0.5360, Estimation Error: 0.1760, Precision: 0.5011, Recall: 0.4641, F1 Score: 0.4819
+Source Dataset: amazon/dvd, Target Dataset: amazon/health
+Target Accuracy: 0.7215, Estimated Accuracy: 0.4785, Estimation Error: 0.2430, Precision: 0.5072, Recall: 0.5212, F1 Score: 0.5141
+Source Dataset: amazon/dvd, Target Dataset: amazon/kitchen
+Target Accuracy: 0.7020, Estimated Accuracy: 0.4970, Estimation Error: 0.2050, Precision: 0.4861, Recall: 0.5031, F1 Score: 0.4944
+Source Dataset: amazon/dvd, Target Dataset: amazon/music
+Target Accuracy: 0.7425, Estimated Accuracy: 0.6515, Estimation Error: 0.0910, Precision: 0.4892, Recall: 0.3476, F1 Score: 0.4064
+Source Dataset: amazon/dvd, Target Dataset: amazon/sports
+Target Accuracy: 0.7150, Estimated Accuracy: 0.4870, Estimation Error: 0.2280, Precision: 0.5166, Recall: 0.5126, F1 Score: 0.5146
+Source Dataset: amazon/dvd, Target Dataset: amazon/toys
+Target Accuracy: 0.7410, Estimated Accuracy: 0.5705, Estimation Error: 0.1705, Precision: 0.5017, Recall: 0.4319, F1 Score: 0.4642
+Source Dataset: amazon/dvd, Target Dataset: amazon/video
+Target Accuracy: 0.7970, Estimated Accuracy: 0.5015, Estimation Error: 0.2955, Precision: 0.5366, Recall: 0.5144, F1 Score: 0.5253
+Source Dataset: amazon/electronics, Target Dataset: amazon/apparel
+Target Accuracy: 0.7640, Estimated Accuracy: 0.6045, Estimation Error: 0.1595, Precision: 0.5158, Recall: 0.3984, F1 Score: 0.4496
+Source Dataset: amazon/electronics, Target Dataset: amazon/books
+Target Accuracy: 0.6320, Estimated Accuracy: 0.7325, Estimation Error: 0.1005, Precision: 0.5140, Recall: 0.2712, F1 Score: 0.3551
+Source Dataset: amazon/electronics, Target Dataset: amazon/dvd
+Target Accuracy: 0.6720, Estimated Accuracy: 0.3360, Estimation Error: 0.3360, Precision: 0.5098, Recall: 0.6598, F1 Score: 0.5752
+Source Dataset: amazon/electronics, Target Dataset: amazon/health
+Target Accuracy: 0.7605, Estimated Accuracy: 0.5600, Estimation Error: 0.2005, Precision: 0.5102, Recall: 0.4468, F1 Score: 0.4764
+Source Dataset: amazon/electronics, Target Dataset: amazon/kitchen
+Target Accuracy: 0.7695, Estimated Accuracy: 0.4300, Estimation Error: 0.3395, Precision: 0.5035, Recall: 0.5734, F1 Score: 0.5362
+Source Dataset: amazon/electronics, Target Dataset: amazon/music
+Target Accuracy: 0.6545, Estimated Accuracy: 0.6735, Estimation Error: 0.0190, Precision: 0.5299, Recall: 0.3330, F1 Score: 0.4090
+Source Dataset: amazon/electronics, Target Dataset: amazon/sports
+Target Accuracy: 0.7670, Estimated Accuracy: 0.6035, Estimation Error: 0.1635, Precision: 0.4905, Recall: 0.3953, F1 Score: 0.4378
+Source Dataset: amazon/electronics, Target Dataset: amazon/toys
+Target Accuracy: 0.7675, Estimated Accuracy: 0.6265, Estimation Error: 0.1410, Precision: 0.4980, Recall: 0.3731, F1 Score: 0.4266
+Source Dataset: amazon/electronics, Target Dataset: amazon/video
+Target Accuracy: 0.7070, Estimated Accuracy: 0.3410, Estimation Error: 0.3660, Precision: 0.5167, Recall: 0.6523, F1 Score: 0.5766
+Source Dataset: amazon/health, Target Dataset: amazon/apparel
+Target Accuracy: 0.7905, Estimated Accuracy: 0.4485, Estimation Error: 0.3420, Precision: 0.4968, Recall: 0.5541, F1 Score: 0.5239
+Source Dataset: amazon/health, Target Dataset: amazon/books
+Target Accuracy: 0.6630, Estimated Accuracy: 0.7340, Estimation Error: 0.0710, Precision: 0.5226, Recall: 0.2715, F1 Score: 0.3573
+Source Dataset: amazon/health, Target Dataset: amazon/dvd
+Target Accuracy: 0.6895, Estimated Accuracy: 0.3075, Estimation Error: 0.3820, Precision: 0.4895, Recall: 0.6982, F1 Score: 0.5756
+Source Dataset: amazon/health, Target Dataset: amazon/electronics
+Target Accuracy: 0.7820, Estimated Accuracy: 0.4775, Estimation Error: 0.3045, Precision: 0.5158, Recall: 0.5213, F1 Score: 0.5185
+Source Dataset: amazon/health, Target Dataset: amazon/kitchen
+Target Accuracy: 0.7835, Estimated Accuracy: 0.4485, Estimation Error: 0.3350, Precision: 0.5050, Recall: 0.5542, F1 Score: 0.5285
+Source Dataset: amazon/health, Target Dataset: amazon/music
+Target Accuracy: 0.6920, Estimated Accuracy: 0.3600, Estimation Error: 0.3320, Precision: 0.5031, Recall: 0.6389, F1 Score: 0.5629
+Source Dataset: amazon/health, Target Dataset: amazon/sports
+Target Accuracy: 0.7835, Estimated Accuracy: 0.4385, Estimation Error: 0.3450, Precision: 0.4853, Recall: 0.5695, F1 Score: 0.5240
+Source Dataset: amazon/health, Target Dataset: amazon/toys
+Target Accuracy: 0.7860, Estimated Accuracy: 0.4110, Estimation Error: 0.3750, Precision: 0.5119, Recall: 0.5866, F1 Score: 0.5467
+Source Dataset: amazon/health, Target Dataset: amazon/video
+Target Accuracy: 0.7230, Estimated Accuracy: 0.3110, Estimation Error: 0.4120, Precision: 0.5080, Recall: 0.6849, F1 Score: 0.5833
+Source Dataset: amazon/kitchen, Target Dataset: amazon/apparel
+Target Accuracy: 0.7870, Estimated Accuracy: 0.5835, Estimation Error: 0.2035, Precision: 0.4778, Recall: 0.4181, F1 Score: 0.4459
+Source Dataset: amazon/kitchen, Target Dataset: amazon/books
+Target Accuracy: 0.6555, Estimated Accuracy: 0.3365, Estimation Error: 0.3190, Precision: 0.5215, Recall: 0.6547, F1 Score: 0.5805
+Source Dataset: amazon/kitchen, Target Dataset: amazon/dvd
+Target Accuracy: 0.6605, Estimated Accuracy: 0.7180, Estimation Error: 0.0575, Precision: 0.4557, Recall: 0.2708, F1 Score: 0.3397
+Source Dataset: amazon/kitchen, Target Dataset: amazon/electronics
+Target Accuracy: 0.7825, Estimated Accuracy: 0.4790, Estimation Error: 0.3035, Precision: 0.5125, Recall: 0.5210, F1 Score: 0.5167
+Source Dataset: amazon/kitchen, Target Dataset: amazon/health
+Target Accuracy: 0.7925, Estimated Accuracy: 0.4150, Estimation Error: 0.3775, Precision: 0.4923, Recall: 0.5720, F1 Score: 0.5292
+Source Dataset: amazon/kitchen, Target Dataset: amazon/music
+Target Accuracy: 0.6745, Estimated Accuracy: 0.6955, Estimation Error: 0.0210, Precision: 0.4943, Recall: 0.3031, F1 Score: 0.3758
+Source Dataset: amazon/kitchen, Target Dataset: amazon/sports
+Target Accuracy: 0.7990, Estimated Accuracy: 0.4585, Estimation Error: 0.3405, Precision: 0.5023, Recall: 0.5473, F1 Score: 0.5238
+Source Dataset: amazon/kitchen, Target Dataset: amazon/toys
+Target Accuracy: 0.7745, Estimated Accuracy: 0.6270, Estimation Error: 0.1475, Precision: 0.5027, Recall: 0.3739, F1 Score: 0.4288
+Source Dataset: amazon/kitchen, Target Dataset: amazon/video
+Target Accuracy: 0.6740, Estimated Accuracy: 0.7060, Estimation Error: 0.0320, Precision: 0.4745, Recall: 0.2876, F1 Score: 0.3582
+Source Dataset: amazon/music, Target Dataset: amazon/apparel
+Target Accuracy: 0.7130, Estimated Accuracy: 0.5200, Estimation Error: 0.1930, Precision: 0.5188, Recall: 0.4807, F1 Score: 0.4990
+Source Dataset: amazon/music, Target Dataset: amazon/books
+Target Accuracy: 0.6990, Estimated Accuracy: 0.6485, Estimation Error: 0.0505, Precision: 0.4979, Recall: 0.3514, F1 Score: 0.4120
+Source Dataset: amazon/music, Target Dataset: amazon/dvd
+Target Accuracy: 0.7535, Estimated Accuracy: 0.4995, Estimation Error: 0.2540, Precision: 0.4935, Recall: 0.4975, F1 Score: 0.4955
+Source Dataset: amazon/music, Target Dataset: amazon/electronics
+Target Accuracy: 0.6720, Estimated Accuracy: 0.6460, Estimation Error: 0.0260, Precision: 0.4845, Recall: 0.3507, F1 Score: 0.4069
+Source Dataset: amazon/music, Target Dataset: amazon/health
+Target Accuracy: 0.7010, Estimated Accuracy: 0.5310, Estimation Error: 0.1700, Precision: 0.4808, Recall: 0.4678, F1 Score: 0.4742
+Source Dataset: amazon/music, Target Dataset: amazon/kitchen
+Target Accuracy: 0.7085, Estimated Accuracy: 0.5465, Estimation Error: 0.1620, Precision: 0.4906, Recall: 0.4527, F1 Score: 0.4709
+Source Dataset: amazon/music, Target Dataset: amazon/sports
+Target Accuracy: 0.6900, Estimated Accuracy: 0.5435, Estimation Error: 0.1465, Precision: 0.5104, Recall: 0.4578, F1 Score: 0.4827
+Source Dataset: amazon/music, Target Dataset: amazon/toys
+Target Accuracy: 0.7145, Estimated Accuracy: 0.5035, Estimation Error: 0.2110, Precision: 0.5035, Recall: 0.4965, F1 Score: 0.5000
+Source Dataset: amazon/music, Target Dataset: amazon/video
+Target Accuracy: 0.7300, Estimated Accuracy: 0.5230, Estimation Error: 0.2070, Precision: 0.4937, Recall: 0.4767, F1 Score: 0.4851
+Source Dataset: amazon/sports, Target Dataset: amazon/apparel
+Target Accuracy: 0.7820, Estimated Accuracy: 0.5850, Estimation Error: 0.1970, Precision: 0.4855, Recall: 0.4062, F1 Score: 0.4424
+Source Dataset: amazon/sports, Target Dataset: amazon/books
+Target Accuracy: 0.6430, Estimated Accuracy: 0.7735, Estimation Error: 0.1305, Precision: 0.5430, Recall: 0.2370, F1 Score: 0.3300
+Source Dataset: amazon/sports, Target Dataset: amazon/dvd
+Target Accuracy: 0.6760, Estimated Accuracy: 0.7055, Estimation Error: 0.0295, Precision: 0.4890, Recall: 0.2921, F1 Score: 0.3657
+Source Dataset: amazon/sports, Target Dataset: amazon/electronics
+Target Accuracy: 0.7850, Estimated Accuracy: 0.4525, Estimation Error: 0.3325, Precision: 0.4913, Recall: 0.5456, F1 Score: 0.5171
+Source Dataset: amazon/sports, Target Dataset: amazon/health
+Target Accuracy: 0.7500, Estimated Accuracy: 0.6035, Estimation Error: 0.1465, Precision: 0.4855, Recall: 0.3865, F1 Score: 0.4304
+Source Dataset: amazon/sports, Target Dataset: amazon/kitchen
+Target Accuracy: 0.7800, Estimated Accuracy: 0.4400, Estimation Error: 0.3400, Precision: 0.4938, Recall: 0.5631, F1 Score: 0.5262
+Source Dataset: amazon/sports, Target Dataset: amazon/music
+Target Accuracy: 0.6710, Estimated Accuracy: 0.7465, Estimation Error: 0.0755, Precision: 0.5010, Recall: 0.2535, F1 Score: 0.3366
+Source Dataset: amazon/sports, Target Dataset: amazon/toys
+Target Accuracy: 0.7680, Estimated Accuracy: 0.4480, Estimation Error: 0.3200, Precision: 0.4819, Recall: 0.5507, F1 Score: 0.5140
+Source Dataset: amazon/sports, Target Dataset: amazon/video
+Target Accuracy: 0.6990, Estimated Accuracy: 0.7095, Estimation Error: 0.0105, Precision: 0.5164, Recall: 0.2947, F1 Score: 0.3752
+Source Dataset: amazon/toys, Target Dataset: amazon/apparel
+Target Accuracy: 0.7450, Estimated Accuracy: 0.6190, Estimation Error: 0.1260, Precision: 0.5013, Recall: 0.3812, F1 Score: 0.4331
+Source Dataset: amazon/toys, Target Dataset: amazon/books
+Target Accuracy: 0.6950, Estimated Accuracy: 0.5635, Estimation Error: 0.1315, Precision: 0.5052, Recall: 0.4375, F1 Score: 0.4689
+Source Dataset: amazon/toys, Target Dataset: amazon/dvd
+Target Accuracy: 0.7180, Estimated Accuracy: 0.5145, Estimation Error: 0.2035, Precision: 0.4933, Recall: 0.4848, F1 Score: 0.4890
+Source Dataset: amazon/toys, Target Dataset: amazon/electronics
+Target Accuracy: 0.6925, Estimated Accuracy: 0.7190, Estimation Error: 0.0265, Precision: 0.5071, Recall: 0.2830, F1 Score: 0.3633
+Source Dataset: amazon/toys, Target Dataset: amazon/health
+Target Accuracy: 0.7330, Estimated Accuracy: 0.6690, Estimation Error: 0.0640, Precision: 0.4940, Recall: 0.3296, F1 Score: 0.3954
+Source Dataset: amazon/toys, Target Dataset: amazon/kitchen
+Target Accuracy: 0.7415, Estimated Accuracy: 0.6590, Estimation Error: 0.0825, Precision: 0.4956, Recall: 0.3404, F1 Score: 0.4036
+Source Dataset: amazon/toys, Target Dataset: amazon/music
+Target Accuracy: 0.6835, Estimated Accuracy: 0.6405, Estimation Error: 0.0430, Precision: 0.4924, Recall: 0.3579, F1 Score: 0.4145
+Source Dataset: amazon/toys, Target Dataset: amazon/sports
+Target Accuracy: 0.7405, Estimated Accuracy: 0.6785, Estimation Error: 0.0620, Precision: 0.5023, Recall: 0.3214, F1 Score: 0.3920
+Source Dataset: amazon/toys, Target Dataset: amazon/video
+Target Accuracy: 0.7065, Estimated Accuracy: 0.5290, Estimation Error: 0.1775, Precision: 0.5042, Recall: 0.4717, F1 Score: 0.4874
+Source Dataset: amazon/video, Target Dataset: amazon/apparel
+Target Accuracy: 0.7145, Estimated Accuracy: 0.6285, Estimation Error: 0.0860, Precision: 0.4966, Recall: 0.3709, F1 Score: 0.4246
+Source Dataset: amazon/video, Target Dataset: amazon/books
+Target Accuracy: 0.7020, Estimated Accuracy: 0.5720, Estimation Error: 0.1300, Precision: 0.5140, Recall: 0.4322, F1 Score: 0.4696
+Source Dataset: amazon/video, Target Dataset: amazon/dvd
+Target Accuracy: 0.7730, Estimated Accuracy: 0.5640, Estimation Error: 0.2090, Precision: 0.5218, Recall: 0.4417, F1 Score: 0.4784
+Source Dataset: amazon/video, Target Dataset: amazon/electronics
+Target Accuracy: 0.6810, Estimated Accuracy: 0.5720, Estimation Error: 0.1090, Precision: 0.5269, Recall: 0.4312, F1 Score: 0.4742
+Source Dataset: amazon/video, Target Dataset: amazon/health
+Target Accuracy: 0.6975, Estimated Accuracy: 0.5685, Estimation Error: 0.1290, Precision: 0.4902, Recall: 0.4303, F1 Score: 0.4583
+Source Dataset: amazon/video, Target Dataset: amazon/kitchen
+Target Accuracy: 0.6765, Estimated Accuracy: 0.5955, Estimation Error: 0.0810, Precision: 0.5019, Recall: 0.4048, F1 Score: 0.4481
+Source Dataset: amazon/video, Target Dataset: amazon/music
+Target Accuracy: 0.7075, Estimated Accuracy: 0.6870, Estimation Error: 0.0205, Precision: 0.5064, Recall: 0.3136, F1 Score: 0.3873
+Source Dataset: amazon/video, Target Dataset: amazon/sports
+Target Accuracy: 0.6885, Estimated Accuracy: 0.6415, Estimation Error: 0.0470, Precision: 0.5174, Recall: 0.3612, F1 Score: 0.4255
+Source Dataset: amazon/video, Target Dataset: amazon/toys
+Target Accuracy: 0.6930, Estimated Accuracy: 0.6610, Estimation Error: 0.0320, Precision: 0.5059, Recall: 0.3403, F1 Score: 0.4069
+Summary Results
+Method: our_ri
+Accuracy Estimation
+Average Estimation Error: 0.2014
+Error Detection
+Average F1 Score: 0.4755
