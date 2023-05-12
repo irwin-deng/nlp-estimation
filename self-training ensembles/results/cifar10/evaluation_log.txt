@@ -1,0 +1,189 @@
+Files already downloaded and verified
+Source Dataset: cifar10, Target Dataset: cifar10c/brightness
+Target Accuracy: 0.7504, Estimated Accuracy: 0.1435, Estimation Error: 0.6069, Precision: 0.8966, Recall: 0.8572, F1 Score: 0.8764
+Files already downloaded and verified
+Source Dataset: cifar10, Target Dataset: cifar10c/contrast
+Target Accuracy: 0.1826, Estimated Accuracy: 0.0367, Estimation Error: 0.1459, Precision: 0.8980, Recall: 0.9633, F1 Score: 0.9295
+Files already downloaded and verified
+Source Dataset: cifar10, Target Dataset: cifar10c/defocus_blur
+Target Accuracy: 0.5279, Estimated Accuracy: 0.1803, Estimation Error: 0.3476, Precision: 0.9005, Recall: 0.8204, F1 Score: 0.8586
+Files already downloaded and verified
+Source Dataset: cifar10, Target Dataset: cifar10c/elastic_transform
+Target Accuracy: 0.6745, Estimated Accuracy: 0.1067, Estimation Error: 0.5678, Precision: 0.8981, Recall: 0.8928, F1 Score: 0.8955
+Files already downloaded and verified
+Source Dataset: cifar10, Target Dataset: cifar10c/fog
+Target Accuracy: 0.4370, Estimated Accuracy: 0.2426, Estimation Error: 0.1944, Precision: 0.9073, Recall: 0.7581, F1 Score: 0.8260
+Files already downloaded and verified
+Source Dataset: cifar10, Target Dataset: cifar10c/frost
+Target Accuracy: 0.6437, Estimated Accuracy: 0.1193, Estimation Error: 0.5244, Precision: 0.8988, Recall: 0.8810, F1 Score: 0.8898
+Files already downloaded and verified
+Source Dataset: cifar10, Target Dataset: cifar10c/gaussian_blur
+Target Accuracy: 0.4839, Estimated Accuracy: 0.1943, Estimation Error: 0.2896, Precision: 0.8977, Recall: 0.8054, F1 Score: 0.8490
+Files already downloaded and verified
+Source Dataset: cifar10, Target Dataset: cifar10c/gaussian_noise
+Target Accuracy: 0.6082, Estimated Accuracy: 0.2422, Estimation Error: 0.3660, Precision: 0.9045, Recall: 0.7579, F1 Score: 0.8247
+Files already downloaded and verified
+Source Dataset: cifar10, Target Dataset: cifar10c/glass_blur
+Target Accuracy: 0.5701, Estimated Accuracy: 0.1100, Estimation Error: 0.4601, Precision: 0.9017, Recall: 0.8905, F1 Score: 0.8960
+Files already downloaded and verified
+Source Dataset: cifar10, Target Dataset: cifar10c/impulse_noise
+Target Accuracy: 0.4320, Estimated Accuracy: 0.3552, Estimation Error: 0.0768, Precision: 0.9043, Recall: 0.6455, F1 Score: 0.7533
+Files already downloaded and verified
+Source Dataset: cifar10, Target Dataset: cifar10c/jpeg_compression
+Target Accuracy: 0.7492, Estimated Accuracy: 0.0945, Estimation Error: 0.6547, Precision: 0.8987, Recall: 0.9058, F1 Score: 0.9023
+Files already downloaded and verified
+Source Dataset: cifar10, Target Dataset: cifar10c/motion_blur
+Target Accuracy: 0.5664, Estimated Accuracy: 0.1772, Estimation Error: 0.3892, Precision: 0.9022, Recall: 0.8229, F1 Score: 0.8607
+Files already downloaded and verified
+Source Dataset: cifar10, Target Dataset: cifar10c/pixelate
+Target Accuracy: 0.6708, Estimated Accuracy: 0.0959, Estimation Error: 0.5749, Precision: 0.8972, Recall: 0.9042, F1 Score: 0.9007
+Files already downloaded and verified
+Source Dataset: cifar10, Target Dataset: cifar10c/saturate
+Target Accuracy: 0.6961, Estimated Accuracy: 0.1176, Estimation Error: 0.5785, Precision: 0.9027, Recall: 0.8829, F1 Score: 0.8927
+Files already downloaded and verified
+Source Dataset: cifar10, Target Dataset: cifar10c/shot_noise
+Target Accuracy: 0.6258, Estimated Accuracy: 0.2251, Estimation Error: 0.4007, Precision: 0.9018, Recall: 0.7764, F1 Score: 0.8344
+Files already downloaded and verified
+Source Dataset: cifar10, Target Dataset: cifar10c/snow
+Target Accuracy: 0.6957, Estimated Accuracy: 0.1109, Estimation Error: 0.5848, Precision: 0.8983, Recall: 0.8893, F1 Score: 0.8938
+Files already downloaded and verified
+Source Dataset: cifar10, Target Dataset: cifar10c/spatter
+Target Accuracy: 0.6222, Estimated Accuracy: 0.1095, Estimation Error: 0.5127, Precision: 0.9050, Recall: 0.8929, F1 Score: 0.8989
+Files already downloaded and verified
+Source Dataset: cifar10, Target Dataset: cifar10c/speckle_noise
+Target Accuracy: 0.6079, Estimated Accuracy: 0.2240, Estimation Error: 0.3839, Precision: 0.9018, Recall: 0.7757, F1 Score: 0.8340
+Files already downloaded and verified
+Source Dataset: cifar10, Target Dataset: cifar10c/zoom_blur
+Target Accuracy: 0.5536, Estimated Accuracy: 0.1630, Estimation Error: 0.3906, Precision: 0.9033, Recall: 0.8389, F1 Score: 0.8699
+Summary Results
+Method: our_ri
+Accuracy Estimation
+Average Estimation Error: 0.4237
+Error Detection
+Average F1 Score: 0.8677
+Files already downloaded and verified
+Source Dataset: cifar10, Target Dataset: cifar10c/brightness
+Target Accuracy: 0.7504, Estimated Accuracy: 0.1381, Estimation Error: 0.6123, Precision: 0.8966, Recall: 0.8627, F1 Score: 0.8793
+Files already downloaded and verified
+Source Dataset: cifar10, Target Dataset: cifar10c/contrast
+Target Accuracy: 0.1826, Estimated Accuracy: 0.0367, Estimation Error: 0.1459, Precision: 0.9035, Recall: 0.9636, F1 Score: 0.9325
+Files already downloaded and verified
+Source Dataset: cifar10, Target Dataset: cifar10c/defocus_blur
+Target Accuracy: 0.5279, Estimated Accuracy: 0.1806, Estimation Error: 0.3473, Precision: 0.9019, Recall: 0.8186, F1 Score: 0.8582
+Files already downloaded and verified
+Source Dataset: cifar10, Target Dataset: cifar10c/elastic_transform
+Target Accuracy: 0.6745, Estimated Accuracy: 0.1036, Estimation Error: 0.5709, Precision: 0.8975, Recall: 0.8959, F1 Score: 0.8967
+Files already downloaded and verified
+Source Dataset: cifar10, Target Dataset: cifar10c/fog
+Target Accuracy: 0.4370, Estimated Accuracy: 0.2429, Estimation Error: 0.1941, Precision: 0.8990, Recall: 0.7559, F1 Score: 0.8212
+Files already downloaded and verified
+Source Dataset: cifar10, Target Dataset: cifar10c/frost
+Target Accuracy: 0.6437, Estimated Accuracy: 0.1804, Estimation Error: 0.4633, Precision: 0.9002, Recall: 0.8191, F1 Score: 0.8578
+Files already downloaded and verified
+Source Dataset: cifar10, Target Dataset: cifar10c/gaussian_blur
+Target Accuracy: 0.4839, Estimated Accuracy: 0.1943, Estimation Error: 0.2896, Precision: 0.8956, Recall: 0.8078, F1 Score: 0.8494
+Files already downloaded and verified
+Source Dataset: cifar10, Target Dataset: cifar10c/gaussian_noise
+Target Accuracy: 0.6082, Estimated Accuracy: 0.2418, Estimation Error: 0.3664, Precision: 0.8888, Recall: 0.7546, F1 Score: 0.8163
+Files already downloaded and verified
+Source Dataset: cifar10, Target Dataset: cifar10c/glass_blur
+Target Accuracy: 0.5701, Estimated Accuracy: 0.1842, Estimation Error: 0.3859, Precision: 0.8975, Recall: 0.8161, F1 Score: 0.8549
+Files already downloaded and verified
+Source Dataset: cifar10, Target Dataset: cifar10c/impulse_noise
+Target Accuracy: 0.4320, Estimated Accuracy: 0.3553, Estimation Error: 0.0767, Precision: 0.9055, Recall: 0.6462, F1 Score: 0.7542
+Files already downloaded and verified
+Source Dataset: cifar10, Target Dataset: cifar10c/jpeg_compression
+Target Accuracy: 0.7492, Estimated Accuracy: 0.1026, Estimation Error: 0.6466, Precision: 0.8975, Recall: 0.8967, F1 Score: 0.8971
+Files already downloaded and verified
+Source Dataset: cifar10, Target Dataset: cifar10c/motion_blur
+Target Accuracy: 0.5664, Estimated Accuracy: 0.1771, Estimation Error: 0.3893, Precision: 0.9000, Recall: 0.8231, F1 Score: 0.8598
+Files already downloaded and verified
+Source Dataset: cifar10, Target Dataset: cifar10c/pixelate
+Target Accuracy: 0.6708, Estimated Accuracy: 0.1696, Estimation Error: 0.5012, Precision: 0.9022, Recall: 0.8300, F1 Score: 0.8646
+Files already downloaded and verified
+Source Dataset: cifar10, Target Dataset: cifar10c/saturate
+Target Accuracy: 0.6961, Estimated Accuracy: 0.1260, Estimation Error: 0.5701, Precision: 0.8937, Recall: 0.8728, F1 Score: 0.8831
+Files already downloaded and verified
+Source Dataset: cifar10, Target Dataset: cifar10c/shot_noise
+Target Accuracy: 0.6258, Estimated Accuracy: 0.2247, Estimation Error: 0.4011, Precision: 0.8963, Recall: 0.7748, F1 Score: 0.8311
+Files already downloaded and verified
+Source Dataset: cifar10, Target Dataset: cifar10c/snow
+Target Accuracy: 0.6957, Estimated Accuracy: 0.1212, Estimation Error: 0.5745, Precision: 0.9050, Recall: 0.8793, F1 Score: 0.8919
+Files already downloaded and verified
+Source Dataset: cifar10, Target Dataset: cifar10c/spatter
+Target Accuracy: 0.6222, Estimated Accuracy: 0.1403, Estimation Error: 0.4819, Precision: 0.9061, Recall: 0.8590, F1 Score: 0.8819
+Files already downloaded and verified
+Source Dataset: cifar10, Target Dataset: cifar10c/speckle_noise
+Target Accuracy: 0.6079, Estimated Accuracy: 0.2247, Estimation Error: 0.3832, Precision: 0.9033, Recall: 0.7767, F1 Score: 0.8352
+Files already downloaded and verified
+Source Dataset: cifar10, Target Dataset: cifar10c/zoom_blur
+Target Accuracy: 0.5536, Estimated Accuracy: 0.1627, Estimation Error: 0.3909, Precision: 0.9002, Recall: 0.8354, F1 Score: 0.8666
+Summary Results
+Method: acc_weighted_ri
+Accuracy Estimation
+Average Estimation Error: 0.4101
+Error Detection
+Average F1 Score: 0.8596
+Files already downloaded and verified
+Source Dataset: cifar10, Target Dataset: cifar10c/brightness
+Target Accuracy: 0.7504, Estimated Accuracy: 0.1365, Estimation Error: 0.6139, Precision: 0.8998, Recall: 0.8627, F1 Score: 0.8809
+Files already downloaded and verified
+Source Dataset: cifar10, Target Dataset: cifar10c/contrast
+Target Accuracy: 0.1826, Estimated Accuracy: 0.0367, Estimation Error: 0.1459, Precision: 0.9040, Recall: 0.9635, F1 Score: 0.9328
+Files already downloaded and verified
+Source Dataset: cifar10, Target Dataset: cifar10c/defocus_blur
+Target Accuracy: 0.5279, Estimated Accuracy: 0.1804, Estimation Error: 0.3475, Precision: 0.9023, Recall: 0.8188, F1 Score: 0.8585
+Files already downloaded and verified
+Source Dataset: cifar10, Target Dataset: cifar10c/elastic_transform
+Target Accuracy: 0.6745, Estimated Accuracy: 0.0997, Estimation Error: 0.5748, Precision: 0.9020, Recall: 0.8996, F1 Score: 0.9008
+Files already downloaded and verified
+Source Dataset: cifar10, Target Dataset: cifar10c/fog
+Target Accuracy: 0.4370, Estimated Accuracy: 0.2421, Estimation Error: 0.1949, Precision: 0.9003, Recall: 0.7586, F1 Score: 0.8234
+Files already downloaded and verified
+Source Dataset: cifar10, Target Dataset: cifar10c/frost
+Target Accuracy: 0.6437, Estimated Accuracy: 0.1490, Estimation Error: 0.4947, Precision: 0.8968, Recall: 0.8503, F1 Score: 0.8729
+Files already downloaded and verified
+Source Dataset: cifar10, Target Dataset: cifar10c/gaussian_blur
+Target Accuracy: 0.4839, Estimated Accuracy: 0.1943, Estimation Error: 0.2896, Precision: 0.8970, Recall: 0.8045, F1 Score: 0.8482
+Files already downloaded and verified
+Source Dataset: cifar10, Target Dataset: cifar10c/gaussian_noise
+Target Accuracy: 0.6082, Estimated Accuracy: 0.2421, Estimation Error: 0.3661, Precision: 0.8964, Recall: 0.7566, F1 Score: 0.8206
+Files already downloaded and verified
+Source Dataset: cifar10, Target Dataset: cifar10c/glass_blur
+Target Accuracy: 0.5701, Estimated Accuracy: 0.1842, Estimation Error: 0.3859, Precision: 0.9014, Recall: 0.8167, F1 Score: 0.8570
+Files already downloaded and verified
+Source Dataset: cifar10, Target Dataset: cifar10c/impulse_noise
+Target Accuracy: 0.4320, Estimated Accuracy: 0.3553, Estimation Error: 0.0767, Precision: 0.8964, Recall: 0.6456, F1 Score: 0.7506
+Files already downloaded and verified
+Source Dataset: cifar10, Target Dataset: cifar10c/jpeg_compression
+Target Accuracy: 0.7492, Estimated Accuracy: 0.1038, Estimation Error: 0.6454, Precision: 0.8981, Recall: 0.8956, F1 Score: 0.8969
+Files already downloaded and verified
+Source Dataset: cifar10, Target Dataset: cifar10c/motion_blur
+Target Accuracy: 0.5664, Estimated Accuracy: 0.1772, Estimation Error: 0.3892, Precision: 0.9039, Recall: 0.8230, F1 Score: 0.8615
+Files already downloaded and verified
+Source Dataset: cifar10, Target Dataset: cifar10c/pixelate
+Target Accuracy: 0.6708, Estimated Accuracy: 0.1705, Estimation Error: 0.5003, Precision: 0.8956, Recall: 0.8274, F1 Score: 0.8601
+Files already downloaded and verified
+Source Dataset: cifar10, Target Dataset: cifar10c/saturate
+Target Accuracy: 0.6961, Estimated Accuracy: 0.1259, Estimation Error: 0.5702, Precision: 0.9022, Recall: 0.8743, F1 Score: 0.8880
+Files already downloaded and verified
+Source Dataset: cifar10, Target Dataset: cifar10c/shot_noise
+Target Accuracy: 0.6258, Estimated Accuracy: 0.2248, Estimation Error: 0.4010, Precision: 0.9036, Recall: 0.7760, F1 Score: 0.8350
+Files already downloaded and verified
+Source Dataset: cifar10, Target Dataset: cifar10c/snow
+Target Accuracy: 0.6957, Estimated Accuracy: 0.0932, Estimation Error: 0.6025, Precision: 0.8964, Recall: 0.9063, F1 Score: 0.9014
+Files already downloaded and verified
+Source Dataset: cifar10, Target Dataset: cifar10c/spatter
+Target Accuracy: 0.6222, Estimated Accuracy: 0.1415, Estimation Error: 0.4807, Precision: 0.9010, Recall: 0.8589, F1 Score: 0.8794
+Files already downloaded and verified
+Source Dataset: cifar10, Target Dataset: cifar10c/speckle_noise
+Target Accuracy: 0.6079, Estimated Accuracy: 0.2247, Estimation Error: 0.3832, Precision: 0.9021, Recall: 0.7766, F1 Score: 0.8347
+Files already downloaded and verified
+Source Dataset: cifar10, Target Dataset: cifar10c/zoom_blur
+Target Accuracy: 0.5536, Estimated Accuracy: 0.1627, Estimation Error: 0.3909, Precision: 0.8969, Recall: 0.8384, F1 Score: 0.8667
+Summary Results
+Method: sim_weighted_ri
+Accuracy Estimation
+Average Estimation Error: 0.4133
+Error Detection
+Average F1 Score: 0.8615

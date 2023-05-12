@@ -289,7 +289,9 @@ class MNISTM(torch.utils.data.Dataset):
 
 class CIFAR10C(torch.utils.data.Dataset):
     def __init__(self, root, split, category, transform=None):
+        self.root = root
         self.transform = transform
+
         self.n = 10000
         self.images = np.load(os.path.join(root, f"{category}.npy"))[-10000:]  # Get all with corruption severity 5
         self.images = [Image.fromarray(self.images[i], mode="RGB") for i in range(self.n)]

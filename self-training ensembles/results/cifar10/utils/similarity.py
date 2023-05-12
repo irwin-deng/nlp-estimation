@@ -7,12 +7,10 @@ import torchvision
 from torchvision import transforms
 from typing import Union
 
-bert_tokenizer = None
+bert_tokenizer = transformers.AutoTokenizer.from_pretrained('bert-base-uncased')
 
 
 def get_bert_encoding(batch: list[str]) -> transformers.BatchEncoding:
-    if bert_tokenizer is None:
-        bert_tokenizer = transformers.AutoTokenizer.from_pretrained('bert-base-uncased')
     encoding = bert_tokenizer.batch_encode_plus(
         [f"[CLS] {review} [SEP]" for review in batch],
         add_special_tokens = True,  # Add [CLS] and [SEP]
