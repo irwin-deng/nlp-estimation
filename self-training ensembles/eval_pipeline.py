@@ -18,6 +18,7 @@ from utils.similarity import get_distance_matrix
 
     
 def get_dataloaders(source_dataset, target_dataset, batch_size, test_time):
+    # Convert PIL images of shape (size, size) to torch tensors
     def img_transform(size: int):
         return transforms.Compose([
             transforms.Resize(size),
@@ -53,7 +54,7 @@ def get_dataloaders(source_dataset, target_dataset, batch_size, test_time):
         dataloader_source_test = DataLoader(dataset=dataset_source_test, batch_size=batch_size, shuffle=True, num_workers=2)
     elif source_dataset == "cifar10":
         dataset = datasets.CIFAR10("dataset/cifar10/", train=True, transform=img_transform(32), download=True)
-        # Split into train-validation because cifar10c uses the same test set
+        # Split into train-validation because cifar10c uses the same test examples
         train_ds, valid_ds = random_split(dataset, (0.8, 0.2), torch.Generator().manual_seed(0))
         dataloader_source = DataLoader(dataset=train_ds, batch_size=batch_size, shuffle=True, num_workers=2)
         dataloader_source_test = DataLoader(dataset=valid_ds, batch_size=batch_size, shuffle=True, num_workers=2)
@@ -149,25 +150,34 @@ def eval_proxy_risk_method(model, source_dataset, target_dataset, args):
 
 
 def eval_our_ri_method(model, source_dataset, target_dataset, weight_by, args):
+    """
+    Implementation of Random Initialization (algorithms 1 and 2) from https://arxiv.org/pdf/2106.15728.pdf
+    """
 
+    # Hyperparameters
     batch_size = 128
     test_time = True
-    nround = 5
-    nepoch = 5
+    nround = 5  # parameter T in algorithm 1
+    nepoch = 5  # parameter N in algorithm 2
     if source_dataset.startswith("amazon/"):
         nepoch = 20
-    gamma = 0.1
+    gamma = 0.1  # parameter in algorithm 2
     num_classes = 10
         
-
+    # dataloader_source contains the train set (labeled dataset)
+    # dataloader_source_test contains the validation set (labeled dataset)
+    # dataloader_target is unused, and dataloader_target_test contains the full unlabeled dataset
     dataloader_source, dataloader_source_test, dataloader_target, dataloader_target_test = get_dataloaders(source_dataset, target_dataset, batch_size, test_time)
 
+    # Load ensemble model checkpoints
     check_model_paths = []
     for i in range(nepoch):
         check_model_path = "./checkpoints/ensemble_dann_arch_source_models/{:d}/{}/checkpoint.pth".format(i, source_dataset)
         check_model_paths.append(check_model_path)
 
+    # Pre-calculate a matrix of pair-wise similarities between the validation and test datasets
     if weight_by == "similar":
+        # Get a matrix of distances between validation set (axis 0) and unlabeled set (axis 1)
         if source_dataset.startswith("amazon/"):
             distance_matrix = get_distance_matrix(dataloader_target_test.dataset.raw_text,
                                                   dataloader_source_test.dataset.raw_text,
@@ -176,7 +186,10 @@ def eval_our_ri_method(model, source_dataset, target_dataset, weight_by, args):
             valid_images, _ = get_data(dataloader_source_test)
             test_images, _ = get_data(dataloader_target_test)
             distance_matrix = get_distance_matrix(test_images, valid_images, "resnet")
+        # Get a probability vector of sampling labeled examples for each unlabeled example
         nn_weights = torch.softmax(distance_matrix ** -1, dim=1)
+        # Weights are proportional to the probability of sampling a labeled example if we sample an
+        # unlabeled example uniformly and then sample a labeled sample from its conditional distribution
         labeled_test_weights = nn_weights.sum(dim=0).cpu().numpy()
         source_test_images, source_test_labels = get_data(dataloader_source_test)
         weighted_labeled_ds = CustomDatasetWithWeight(source_test_images, source_test_labels, labeled_test_weights)
@@ -185,6 +198,7 @@ def eval_our_ri_method(model, source_dataset, target_dataset, weight_by, args):
     if target_dataset == "usps":
         pseudo_weight = pseudo_weight * 10
 
+    # true test accuracy
     t_test_acc = test(model, dataloader_target_test)
     
     source_train_images, source_train_labels = get_data(dataloader_source)
@@ -192,25 +206,32 @@ def eval_our_ri_method(model, source_dataset, target_dataset, weight_by, args):
     target_test_pred_labels, _ = get_model_pred(model, dataloader_target_test)
 
     pseudo_train_ds = CustomDatasetWithWeight(source_train_images, source_train_labels, np.ones(source_train_labels.shape[0], dtype=np.float32))
-    dataloader_source_pseudo = torch.utils.data.DataLoader(pseudo_train_ds, batch_size=batch_size, shuffle=True)
+    dataloader_source_pseudo = DataLoader(pseudo_train_ds, batch_size=batch_size, shuffle=True)
 
     for i in range(nround):
         pred_record = np.zeros((target_test_pred_labels.shape[0], num_classes), dtype=np.float64)
 
         for epoch in range(nepoch):
+            # load and fine-tune ensemble model
             model2 = torch.load(check_model_paths[epoch]).cuda()
             optimizer = optim.Adam(model2.parameters(), lr=1e-3)
             ensemble_self_training(model2, dataloader_source_pseudo, pseudo_weight, optimizer)
             target_test_pred_labels_2, _ = get_model_pred(model2, dataloader_target_test)
+            
+            # record this model's vote
             if weight_by is None:
                 model_weight = 1
+            # weight by performance on validation set
             elif weight_by == "acc":
                 model_weight = test(model2, dataloader_source_test) ** 10
+            # weight by performance on similar labeled examples in validation set
             elif weight_by == "similar":
                 model_weight = test(model2, DataLoader(weighted_labeled_ds, batch_size=batch_size)) ** 10
             pred_record[np.arange(target_test_pred_labels_2.shape[0]), target_test_pred_labels_2] += model_weight
-        
+
+        # Calculate ensemble's vote y-tilde
         target_test_pseudo_labels = np.argmax(pred_record, axis=1)
+        # Calculate mis-classified points R
         disagree_record = (target_test_pseudo_labels!=target_test_pred_labels)
         disagree_indices = np.where(disagree_record)[0]
         
@@ -228,7 +249,9 @@ def eval_our_ri_method(model, source_dataset, target_dataset, weight_by, args):
 
 
 def eval_our_rm_method(model, source_dataset, target_dataset, args):
-
+    """
+    Implementation of Representation Matching (algorithms 1 and 3) from https://arxiv.org/pdf/2106.15728.pdf
+    """
     batch_size = 128
     test_time = True
     nround = 5
@@ -365,10 +388,10 @@ def eval_trust_score_method(model, source_dataset, target_dataset, args):
 def main():
     parser = argparse.ArgumentParser(description='Evaluate unsupervised accuracy estimation and error detection tasks')
     parser.add_argument('--model-type', default="typical_dnn", choices=['typical_dnn', "dann_arch"], type=str, help='given model type')
-    parser.add_argument('--method', default="conf_avg", type=str, help='method')
-    parser.add_argument('--datasets', nargs='+', required=False)
-    parser.add_argument('--source-datasets', nargs='+', required=False)
-    parser.add_argument('--target-datasets', nargs='+', required=False)
+    parser.add_argument('--method', default="conf_avg", choices=['our_ri', 'acc_weighted_ri', 'sim_weighted_ri', 'our_rm', 'conf_avg', 'ensemble_conf_avg', 'conf', 'trust_score', 'proxy_risk'], type=str, help='method')
+    parser.add_argument('--datasets', nargs='+', required=False, help='list of datasets to use as labeled/unlabeled. Overrides --source-datasets and --target-datasets')
+    parser.add_argument('--source-datasets', nargs='+', required=False, help='list of datasets to use as labeled datasets')
+    parser.add_argument('--target-datasets', nargs='+', required=False, help='list of datasets to use as unlabeled datasets')
     parser.add_argument('--seed', type=int, default=0)
 
     # args parse
@@ -387,7 +410,9 @@ def main():
         source_datasets = args.source_datasets
         target_datasets = args.target_datasets
 
+    # iterate over labeled datasets
     for source_dataset in source_datasets:
+        # iterate over unlabeled datasets
         for target_dataset in target_datasets:
             if source_dataset == target_dataset:
                 continue
@@ -396,14 +421,18 @@ def main():
                 model_path = "./checkpoints/typical_dnn_source_models/{}/checkpoint.pth".format(source_dataset)
             elif args.model_type == "dann_arch":
                 model_path = "./checkpoints/dann_arch_source_models/{}/checkpoint.pth".format(source_dataset)
-
-            # any candidate model 
+            else:
+                raise NotImplementedError()
+            # any candidate model
             model = torch.load(model_path).cuda()
-            
+
+            # Ensemble with random initialization proposed in https://arxiv.org/pdf/2106.15728.pdf
             if args.method == 'our_ri':
                 t_test_acc, estimated_acc, estimated_error, precision, recall, f1 = eval_our_ri_method(model, source_dataset, target_dataset, None, args)
+            # Random intialization, except votes are weighted by accuracy on labeled validation set
             elif args.method == 'acc_weighted_ri':
                 t_test_acc, estimated_acc, estimated_error, precision, recall, f1 = eval_our_ri_method(model, source_dataset, target_dataset, "acc", args)
+            # Random initialization, except votes are weighted by accuracy on labeled validation examples similar to unlabeled set
             elif args.method == 'sim_weighted_ri':
                 t_test_acc, estimated_acc, estimated_error, precision, recall, f1 = eval_our_ri_method(model, source_dataset, target_dataset, "similar", args)
             elif args.method == 'our_rm':

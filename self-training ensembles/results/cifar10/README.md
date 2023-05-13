@@ -27,7 +27,7 @@ You can run the following scrips to pre-train all models needed for the experime
 
 The CIFAR-10 dataset contains 40,000 train examples and 10,000 test examples. The CIFAR-10-C dataset contains 19 different corruptions of the test dataset. For each category of corruption, we will use the 10,000 examples with a corruption level of 5.
 
-In each of the experiments below, the labeled dataset consisting of the 40,000 CIFAR-10 train examples is split 80-20 into a train and validation set. The test dataset contains the full 10,000 examples from a a CIFAR-10-C corruption category.
+In each of the experiments below, the labeled dataset consisting of the 40,000 CIFAR-10 train examples is split 80-20 into a train and validation set. The unlabeled dataset contains the full 10,000 examples from a a CIFAR-10-C corruption category.
 
 - Baseline: The random-initialization algorithm proposed in [this paper](https://arxiv.org/pdf/2106.15728.pdf)
 - Accuracy-weighted: Ensemble models are weighted by accuracy on the labeled validation set

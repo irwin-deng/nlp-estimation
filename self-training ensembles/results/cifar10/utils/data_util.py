@@ -9,12 +9,16 @@ import xml.etree.ElementTree as ET
 from sklearn.feature_extraction.text import TfidfVectorizer
 
 class Amazon(torch.utils.data.Dataset):
-    url = ""
-    filename = ""
-    file_md5 = ""
-    tf_idf_transform: TfidfVectorizer = None
+    """
+    PyTorch Dataset wrapper for the Amazon reviews dataset.
+    Download "unprocessed.tar.gz" from https://www.cs.jhu.edu/~mdredze/datasets/sentiment/
+    """
+    data: np.ndarray      # Contains inputs encoded with tf-idf
+    raw_text: np.ndarray  # Contains inputs as strings
+    targets: np.ndarray   # Labels of each example
+    tf_idf_transform: TfidfVectorizer
 
-    category_dirs = {
+    category_dirs = {  # Mapping from category names to their folders in the dataset
         "apparel": "apparel",
         "books": "books",
         "dvd": "dvd",
@@ -26,12 +30,16 @@ class Amazon(torch.utils.data.Dataset):
         "toys": "toys_&_games",
         "video": "video"}
 
-    def __init__(self, root, category, split="train", transform=None, target_transform=None):
+    def __init__(self, root, category, split="train", transform=None):
+        """
+        param root: root directory
+        param category: category name (should be a key in self.category_dirs)
+        "{root}/{self.category_dirs[category]}/positive.review" should contain the positive reviews
+        """
         self.root = root
         self.category = category
         self.split = split
-        self.transform = transform
-        self.target_transform = target_transform
+        self.tf_idf_transform = transform
 
         if self.category not in self.category_dirs:
             raise ValueError('Wrong category entered!')
@@ -47,7 +55,7 @@ class Amazon(torch.utils.data.Dataset):
                 cleaned_input = cleaned_input.replace(old, new)
             return cleaned_input
 
-        # reading(loading) mat file as array
+        # read reviews from file. Store the title + review body in a list of strings
         positive_reviews = []
         with open(os.path.join(root, self.category_dirs[category], "positive.review"), encoding='cp1252') as file:
             parsed_dataset = ET.fromstring("<root>" + clean_invalid_chars(file.read()) + "</root>")
@@ -61,7 +69,7 @@ class Amazon(torch.utils.data.Dataset):
                 negative_reviews.append(item.find("title").text + item.find("review_text").text)
             file.close()
 
-        # get train/test split
+        # Split into train/test
         if split == "train":
             positive_reviews = positive_reviews[:int(len(positive_reviews) * 0.75)]
             negative_reviews = negative_reviews[:int(len(negative_reviews) * 0.75)]
@@ -288,13 +296,24 @@ class MNISTM(torch.utils.data.Dataset):
 
 
 class CIFAR10C(torch.utils.data.Dataset):
+    """
+    PyTorch Dataset wrapper for the corrupted CIFAR-10 dataset.
+    Download "CIFAR-10-C.tar" from https://zenodo.org/record/2535967#.ZF_PxhHMJD9
+    """
+    images: list[Image.Image]
+    labels: np.ndarray
+    root: str  # root directory of dataset containing image/label files
+
     def __init__(self, root, split, category, transform=None):
         self.root = root
         self.transform = transform
 
         self.n = 10000
+        # Read images from files
         self.images = np.load(os.path.join(root, f"{category}.npy"))[-10000:]  # Get all with corruption severity 5
+        # Convert numpy arrays to PIL images
         self.images = [Image.fromarray(self.images[i], mode="RGB") for i in range(self.n)]
+
         self.labels = np.load(os.path.join(root, "labels.npy"))[-10000:]
 
         if split != "test":

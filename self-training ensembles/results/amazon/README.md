@@ -25,7 +25,7 @@ You can run the following scrips to pre-train all models needed for the experime
 
 ### Methods
 
-The Amazon dataset contains 10 categories with 2000 reviews each. Each experiment uses a pair of categories, one as the labeled dataset and one as the unlabeled dataset.
+The Amazon dataset contains 10 categories that have 1000 positive and 1000 negative reviews. Each experiment uses a pair of categories, one as the labeled dataset and one as the unlabeled dataset.
 
 The labeled dataset (n=2000) is split 80-20 into a train and validation set. The test dataset contains the full 2000 examples from the unlabeled dataset.
 

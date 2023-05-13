@@ -41,6 +41,7 @@ def get_error_detection_results(record, target_test_labels, target_test_pred_lab
     
     return precision, recall, f1
 
+# Evaluates accuracy on a dataset that can optionally be weighted
 def test(model, dataloader):
     model.eval()
     n_correct, n_total = 0, 0
@@ -50,7 +51,6 @@ def test(model, dataloader):
         return img, label, weight
     for item in iter(dataloader):
         img, label, weight = read_optional_weight(*item)
-        batch_size = len(label)
         img, label = img.cuda(), label.cuda()
 
         class_output, _, _ = model(img)

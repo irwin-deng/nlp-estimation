@@ -100,6 +100,7 @@ def main():
         dataset_source_test = Amazon("dataset/amazon/", split='test', category=source_dataset.removeprefix("amazon/"))
         dataloader_source_test = DataLoader(dataset=dataset_source_test, batch_size=batch_size, shuffle=True, num_workers=2)
     elif source_dataset == "cifar10":
+        # Normalize to mean/std of cifar10 train dataset
         normalizer = transforms.Normalize(mean=(0.4914, 0.4822, 0.4465), std=(0.2470, 0.2435, 0.2616))
         dataset = datasets.CIFAR10("dataset/cifar10/", train=True, transform=img_transform(32), download=True)
         # Split into train-validation because cifar10c uses the same test set
@@ -129,7 +130,9 @@ def main():
         os.makedirs(save_dir)
 
     for epoch in range(nepoch):
+        # schedule described on page 20 of https://arxiv.org/pdf/2106.15728.pdf
         alpha = (2 / (1 + np.exp(-10 * (epoch / (nepoch - 1)))) - 1) * 0.1 if nepoch > 1 else 0.1
+
         train(model, dataloader_source, alpha, optimizer, loss_class)
         acc_s = test(model, dataloader_source_test)
         print('EPOCH {} Acc: {} {:.2f}%'.format(epoch, source_dataset, acc_s*100))
